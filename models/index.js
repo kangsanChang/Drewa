@@ -12,13 +12,17 @@ const sequelize = config.use_env_variable
     : new Sequelize(config.database, config.username, config.password, config);
 
 mongoose.Promise = global.Promise;
-mongoose.connect(mongoConfig.url);
-db.errandChats = require('./errandChats');
+// Mongoose 4.11 부터 아래와 같이 옵션을 줘야함 http://mongoosejs.com/docs/connections.html#use-mongo-client
+mongoose.connect(mongoConfig.url, {
+    useMongoClient: true
+});
 
 fs
     .readdirSync(__dirname)
     .filter(file => {
-        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js' && file !== 'errandChats.js');
+        // errandChats 파일을 읽어야 할 경우 아래와 같이 사용
+        // return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js' && file !== 'errandChats.js');
+        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
     })
     .forEach(file => {
         const model = sequelize['import'](path.join(__dirname, file));
