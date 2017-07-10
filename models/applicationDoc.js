@@ -12,4 +12,4 @@ const appliDocSchema = new mongoose.Schema({
     algorithmAnswer: String
 });
 
-module.exports = mongoose.model('errandChats', appliDocSchema);
+module.exports = mongoose.model('applicationDoc', appliDocSchema);
