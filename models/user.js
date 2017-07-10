@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
         timestamps: true,
         tableName: 'USER_INFO_TB',
         underscored: true,
-        comment: '회원 정보 테이블'
+        comment: '전체 회원 테이블'
     });
     return users_tb;
 };

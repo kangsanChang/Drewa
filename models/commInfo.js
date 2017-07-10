@@ -1,6 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
     const comm_info_tb = sequelize.define('commInfoTb', {
         commIdx: {type: DataTypes.INTEGER, field: 'comm_idx', autoIncrement: true, primaryKey: true},
+        userAuthIdx: {type : DataTypes.INTEGER, field: 'user_auth_idx'},
         commLocation: {type: DataTypes.STRING, field: 'comm_location'},
         commUniversity: {type: DataTypes.STRING, field: 'comm_university'},
         commGrade: {type: DataTypes.INTEGER, field: 'comm_grade'},
@@ -13,12 +14,17 @@ module.exports = (sequelize, DataTypes) => {
         commBlogUrl: {type: DataTypes.TEXT, field: 'comm_blog_url'},
         commPersonalUrl: {type: DataTypes.TEXT, field: 'comm_personal_url'},
         commOtherUrl: {type: DataTypes.TEXT, field: 'comm_other_url'},
-        commUserType: {type: DataTypes.ENUM, values: ['개발자', '디자이너'], field: 'comm_user_type'}
+        commUserPosition: {type: DataTypes.ENUM, values: ['개발자', '디자이너'], field: 'comm_user_position'}
     }, {
         timestamps: true,
-        tableName: 'USER_INFO_TB',
+        tableName: 'COMM_INFO_TB',
         underscored: true,
-        comment: '회원 정보 테이블'
+        comment: '지원자 정보 테이블',
+        classMethods: {
+            associate: models => {
+                // models.userInfoTb.belongsTo(comm_info_tb, {foreignKey: 'userAuthIdx'});
+            }
+        }
     });
     return comm_info_tb;
 };
