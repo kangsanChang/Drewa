@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
     const comm_info_tb = sequelize.define('commInfoTb', {
         commIdx: {type: DataTypes.INTEGER, field: 'comm_idx', autoIncrement: true, primaryKey: true},
-        userAuthIdx: {type : DataTypes.INTEGER, field: 'user_auth_idx'},
+        userAuthIdx: {type: DataTypes.INTEGER, field: 'user_auth_idx'},
         commLocation: {type: DataTypes.STRING, field: 'comm_location'},
         commUniversity: {type: DataTypes.STRING, field: 'comm_university'},
         commGrade: {type: DataTypes.INTEGER, field: 'comm_grade'},

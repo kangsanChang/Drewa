@@ -8,7 +8,7 @@ const appliDocSchema = new mongoose.Schema({
         unique: true
     },
     answers: [String],
-    interviewAvailableTime : [Date],
+    interviewAvailableTime: [Date],
     algorithmAnswer: String
 });
 

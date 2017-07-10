@@ -1,8 +1,8 @@
 module.exports = (sequelize, DataTypes) => {
     const interviewers_tb = sequelize.define('interviewerTb', {
-        userAuthIdx:{type: DataTypes.INTEGER, field: 'user_auth_idx'},
-        interIdx:{type: DataTypes.INTEGER, field:'inter_idx', autoIncrement: true, primaryKey: true},
-        interUserPosition:{type: DataTypes.ENUM, values: ['designer', 'devloper'], field: 'inter_user_position'}
+        userAuthIdx: {type: DataTypes.INTEGER, field: 'user_auth_idx'},
+        interIdx: {type: DataTypes.INTEGER, field: 'inter_idx', autoIncrement: true, primaryKey: true},
+        interUserPosition: {type: DataTypes.ENUM, values: ['designer', 'devloper'], field: 'inter_user_position'}
     }, {
         timestamps: true,
         tableName: 'INTERVIEWER_TB',
@@ -11,6 +11,6 @@ module.exports = (sequelize, DataTypes) => {
     });
     interviewers_tb.associate = (models) => {
         models.userInfoTb.hasOne(interviewers_tb, {foreignKey: 'userAuthIdx'});
-    }; 
+    };
     return interviewers_tb;
 }
