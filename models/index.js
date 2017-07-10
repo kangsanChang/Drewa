@@ -20,9 +20,8 @@ mongoose.connect(mongoConfig.url, {
 fs
     .readdirSync(__dirname)
     .filter(file => {
-        // errandChats 파일을 읽어야 할 경우 아래와 같이 사용
-        // return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js' && file !== 'errandChats.js');
-        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
+        // applicationDoc 파일을 읽지 말아야 함
+        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js' && file !== 'applicationDoc.js');
     })
     .forEach(file => {
         const model = sequelize['import'](path.join(__dirname, file));
@@ -37,6 +36,9 @@ Object.keys(db).forEach(modelName => {
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+
+// MongoDB Model export
+db.applicationDoc = require('./applicationDoc');
 
 mongoose.connection.once('open', () => {
     console.log('Mongoose on!');
