@@ -3,9 +3,9 @@ module.exports = (sequelize, DataTypes) => {
         evalIdx: {type: DataTypes.INTEGER, field: 'eval_idx', autoIncrement: true, primaryKey: true},
         applicationIdx: {type: DataTypes.INTEGER, field: 'application_idx'},
         interIdx: {type: DataTypes.INTEGER, field: 'inter_idx'},
-        evalDocPoint:{type: DataTypes.ENUM, values: ['1','2','3','4','5','6','7','8','9','10'], field: 'eval_doc_point'},
+        evalDocPoint:{type: DataTypes.INTEGER(2), field: 'eval_doc_point'},
         evalDocComment:{type: DataTypes.STRING(191), field: 'eval_doc_comment'},
-        evalInterviewPoint:{type: DataTypes.ENUM, values: ['1','2','3','4','5','6','7','8','9','10'], field: 'eval_interview_point'},
+        evalInterviewPoint:{type: DataTypes.INTEGER(2), field: 'eval_interview_point'},
         evalInterviewComment:{type: DataTypes.STRING(191), field: 'eval_interview_comment'},
         evalIsPass:{type: DataTypes.BOOLEAN, field: 'eval_is_pass'}
     },{
