@@ -3,7 +3,7 @@ const extractJwt = require('passport-jwt').ExtractJwt;
 const config = require('../config/config.json');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
-// const bcrypt = require('bcrypt');
+const bcrypt = require('bcrypt');
 
 const jwtPassport = () => {
     const opts = {
@@ -34,7 +34,7 @@ const comparePassword = async (userEmail, userPassword) => {
         }
         // Password Matching
         // TODO: 모델링 완성되면 userPassword 설정할것
-        // const isMatch = await bcrypt.compare(userPassword, result.userPassword);
+        const isMatch = await bcrypt.compare(userPassword, result.userPassword);
         if (!isMatch) {
             throw new Error('Password Not match');
         }
