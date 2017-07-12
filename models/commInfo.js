@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const comm_info_tb = sequelize.define('commInfoTb', {
+    const commInfoTb = sequelize.define('commInfoTb', {
         commIdx: {type: DataTypes.INTEGER, field: 'comm_idx', autoIncrement: true, primaryKey: true},
         userAuthIdx: {type: DataTypes.INTEGER, field: 'user_auth_idx'},
         commLocation: {type: DataTypes.STRING, field: 'comm_location'},
@@ -14,15 +14,16 @@ module.exports = (sequelize, DataTypes) => {
         commBlogUrl: {type: DataTypes.TEXT, field: 'comm_blog_url'},
         commPersonalUrl: {type: DataTypes.TEXT, field: 'comm_personal_url'},
         commOtherUrl: {type: DataTypes.TEXT, field: 'comm_other_url'},
-        commUserPosition: {type: DataTypes.ENUM, values: ['designer', 'developer'], field: 'comm_user_position'}
+        commUserPosition: {type: DataTypes.ENUM, values: ['designer', 'developer'], field: 'comm_user_position'},
+        commIsPass: {type: DataTypes.BOOLEAN, field: 'comm_is_pass'},
     }, {
         timestamps: true,
         tableName: 'COMM_INFO_TB',
         underscored: true,
         comment: '지원자 정보 테이블',
     });
-    comm_info_tb.associate = (models) => {
-        models.userInfoTb.hasOne(comm_info_tb, {foreignKey: 'userAuthIdx'});
+    commInfoTb.associate = (models) => {
+        models.userInfoTb.hasOne(commInfoTb, {foreignKey: 'userAuthIdx'});
     };
-    return comm_info_tb;
+    return commInfoTb;
 };

@@ -5,11 +5,11 @@ const appliDocSchema = new mongoose.Schema({
     userAuthIdx: {
         type: Number,
         index: true,
-        unique: true
+        unique: true,
     },
     answers: [String],
     interviewAvailableTime: [Date],
-    algorithmAnswer: String
+    algorithmAnswer: String,
 });
 
 module.exports = mongoose.model('applicationDoc', appliDocSchema);
