@@ -1,15 +1,17 @@
 const mongoose = require('mongoose');
 
-const appliDocSchema = new mongoose.Schema({
+const appliDocSchema = new mongoose.Schema(
+  {
     cardinalNumber: Number,
     userAuthIdx: {
-        type: Number,
-        index: true,
-        unique: true,
+      type: Number,
+      index: true,
+      unique: true,
     },
     answers: [String],
     interviewAvailableTime: [Date],
     algorithmAnswer: String,
-});
+  },
+);
 
 module.exports = mongoose.model('applicationDoc', appliDocSchema);
