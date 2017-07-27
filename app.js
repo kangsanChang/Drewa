@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const users = require('./routes/users');
 const applications = require('./routes/applications');
+const applicant = require('./routes/applicant');
 
 const app = express();
 
@@ -27,6 +28,7 @@ app.use(passport.initialize());
 require('./controller/authController').jwtPassport();
 
 app.use('/users', users);
+app.use('/applicant', applicant);
 app.use('/applications', applications);
 
 // catch 404 and forward to error handler
