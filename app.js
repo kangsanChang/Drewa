@@ -4,8 +4,7 @@ const path = require('path');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-
-const index = require('./routes/index');
+const passport = require('passport');
 const users = require('./routes/users');
 const applications = require('./routes/applications');
 
@@ -19,11 +18,14 @@ app.set('view engine', 'jade');
 // app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: false}));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
+// initializing passport with passport-jwt strategy
+app.use(passport.initialize());
+require('./controller/authController').jwtPassport();
+
 app.use('/users', users);
 app.use('/applications', applications);
 
