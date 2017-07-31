@@ -9,7 +9,8 @@ const debug = require('debug')('drewa:server');
 const http = require('http');
 const models = require('../models');
 
-// sync with Initializing Dummy Datas
+// sync with Initializing
+// DB 생성 sync
 models.sequelize.sync().then(async () => {
   console.log('Sync complete');
 });
