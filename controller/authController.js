@@ -6,7 +6,7 @@ const passport = require('passport');
 const bcrypt = require('bcrypt');
 const models = require('../models');
 
-const jwtPassport = () => {
+module.exports.jwtPassport = () => {
   const opts = {
     /*
      * extractJwt.fromAuthHeader -> Header name is 'Authorization', values are like 'JWT TOKEN'
@@ -37,7 +37,7 @@ const createToken = async (userEmail, userName, userType) => {
   return token;
 };
 
-const comparePassword = async (userEmail, userPassword) => {
+module.exports.comparePassword = async (userEmail, userPassword) => {
   /*
    * 비밀번호 비교해서 토큰 발급까지 함.
    * 중간에 에러나면 에러를 던진다.
@@ -58,8 +58,4 @@ const comparePassword = async (userEmail, userPassword) => {
   }
 };
 
-const authenticate = passport.authenticate('jwt', { session: false });
-
-module.exports.jwtPassport = jwtPassport;
-module.exports.comparePassword = comparePassword;
-module.exports.authenticate = authenticate;
+module.exports.authenticate = passport.authenticate('jwt', { session: false });

@@ -8,7 +8,9 @@ module.exports.postLogin = async (req, res, next) => {
       throw Error('Property exception');
     }
     const token = await auth.comparePassword(req.body.userEmail, req.body.userPassword);
-    res.json({ token, });
+    res.json({
+      token,
+    });
   } catch (err) {
     next(err);
   }
@@ -20,7 +22,7 @@ module.exports.postSignUp = async (req, res, next) => {
       throw Error('Property exception');
     }
     const { userEmail, userName, userType, userPassword } = req.body;
-    let where = {
+    const where = {
       userEmail,
     };
     // const data = req.body;
@@ -33,7 +35,7 @@ module.exports.postSignUp = async (req, res, next) => {
 
     console.log(result);
     if (result !== null) {
-      await t.rollback()
+      await t.rollback();
       throw Error('User Already Exists');
     }
     const newdata = {
