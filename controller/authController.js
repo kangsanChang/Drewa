@@ -18,13 +18,11 @@ const jwtPassport = () => {
   };
   passport.use(new JWTStrategy(opts, (jwtPayload, done) => {
     // Matching decoded token
-    if (jwtPayload) {
-      const result = models.userInfoTb.findOne({ where: { userEmail: jwtPayload.userEmail } });
-      if (!result) {
-        return done(new Error('No user matched with jwt payload'));
-      }
-      return done(null, jwtPayload);
+    const result = models.userInfoTb.findOne({ where: { userEmail: jwtPayload.userEmail } });
+    if (!result) {
+      return done(new Error('No user matched with jwt payload'));
     }
+    return done(null, jwtPayload);
   }));
 };
 
