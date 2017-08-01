@@ -49,7 +49,7 @@ module.exports.postSignUp = async (req, res, next) => {
     await t.commit();
     res.json(result);
   } catch (err) {
-    console.log(err)
+    console.log(err);
     next(err);
   }
 };
