@@ -29,6 +29,12 @@ module.exports = (sequelize, DataTypes) => {
         field: 'user_type',
         allowNull: false,
       },
+      userPosition: {
+        type: DataTypes.ENUM,
+        values: ['designer', 'developer'],
+        field: 'user_position',
+        allowNull: false,
+      },
     }, {
       timestamps: true,
       tableName: 'USER_INFO_TB',

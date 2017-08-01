@@ -62,11 +62,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         field: 'comm_other_url',
       },
-      commUserPosition: {
-        type: DataTypes.ENUM,
-        values: ['designer', 'developer'],
-        field: 'comm_user_position',
-      },
       commIsPass: {
         type: DataTypes.BOOLEAN,
         field: 'comm_is_pass',
