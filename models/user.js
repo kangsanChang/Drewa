@@ -34,6 +34,9 @@ module.exports = (sequelize, DataTypes) => {
         values: ['designer', 'developer'],
         field: 'user_position',
         allowNull: false,
+        validate: {
+          isIn: [['designer', 'developer']],
+        },
       },
     }, {
       timestamps: true,
