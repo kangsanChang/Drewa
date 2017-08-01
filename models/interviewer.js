@@ -11,11 +11,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         field: 'user_auth_idx',
       },
-      interUserPosition: {
-        type: DataTypes.ENUM,
-        values: ['designer', 'developer'],
-        field: 'inter_user_position',
-      },
     },
     {
       timestamps: true,

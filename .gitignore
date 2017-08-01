@@ -40,3 +40,6 @@ db
 
 # Config Files
 config/*.json
+
+# exclude vscode
+.vscode
