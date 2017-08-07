@@ -12,6 +12,7 @@ module.exports.postApplications = async (req, res, next) => {
     // console.log('DATA----- \n', data);
     const userName = data.userName;
     const commData = {
+      userAuthIdx: null,
       commGender: data.commGender,
       commBirthday: new Date(data.commBirthday),
       commLocation: data.commLocation,
@@ -28,8 +29,8 @@ module.exports.postApplications = async (req, res, next) => {
     // 토큰에서 user email 가져오는 부분 필요...
     // CODE ...
     // 헤더에서 토큰 까서 email 가지고 왔다(tempEmail)고 생각하고 진행.
-    const tempEmail = 'test7@gmail.com';
-    // 현재는 수동으로 userAuthIdx 지정해 주어야 함. 토큰에서 까서 찾아내는 코드 필요
+    const tempEmail = 'upsert@gmail.com';
+
     const appDocData = {
       cardinalNumber: 3,
       userAuthIdx: null,
@@ -37,24 +38,26 @@ module.exports.postApplications = async (req, res, next) => {
       interviewAvailableTime: data.interviewAvailableTime,
       answers: data.answers,
     };
-
+    // token 정보를 기반으로 appDocData 구성
     await models.userInfoTb.findOne({ where: { userEmail: tempEmail } })
                 .then((result) => {
                   // userAuthIdx 가져오기
                   appDocData.userAuthIdx = result.dataValues.userAuthIdx;
-                  // interviewAvailavleTime 의 배열 요소들을 Date 타입으로 변경
-                  // 몽고디비 확인해보면 string으로 넣어도 알아서 Date 타입으로 변경해서 저장하는 것 같긴 함
+                  commData.userAuthIdx = result.dataValues.userAuthIdx;
+                  // interviewAvailableTime 의 배열 요소들을 Date 타입으로 변경
+                  // 몽고디비 확인해보면 string 으로 넣어도 알아서 Date 타입으로 변경해서 저장하는 것 같긴 함
                   appDocData.interviewAvailableTime
                             .forEach((elem, i, arr) => { arr[i] = new Date(elem); });
                 });
-
     // DB에 넣어주기
     const userInfoResult = await models.userInfoTb.update({ userName },
       { where: { userEmail: tempEmail }, transaction: t });
-    const commInfoResult = await models.commInfoTb.create(commData, { transaction: t });
-    const appDocResult = await models.applicationDoc.create(appDocData);
+    const commInfoResult = await models.commInfoTb.upsert(commData, { transaction: t });
+    const appDocResult = await models.applicationDoc.findOneAndUpdate(
+                                       { userAuthIdx: appDocData.userAuthIdx },
+                                       appDocData,
+                                       { upsert: true, runValidators: true });
     await t.commit();
-
     // 결과값 응답
     const results = [userInfoResult, commInfoResult, appDocResult];
     res.json(results);
