@@ -7,9 +7,11 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
       },
-      userAuthIdx: {
+      userIdx: {
         type: DataTypes.INTEGER,
-        field: 'user_auth_idx',
+        field: 'user_idx',
+        unique: true,
+        validate: { isInt: true },
       },
       commLocation: {
         type: DataTypes.STRING,
@@ -26,17 +28,18 @@ module.exports = (sequelize, DataTypes) => {
       commPhone: {
         type: DataTypes.STRING(15),
         field: 'comm_phone',
-        unique: true,
       },
       commBirthday: {
         type: DataTypes.DATEONLY,
         field: 'comm_birthday',
-        allowNull: false,
       },
       commGender: {
         type: DataTypes.ENUM,
         values: ['M', 'F'],
         field: 'comm_gender',
+        validate: {
+          isIn: [['M', 'F']],
+        },
       },
       commKnownPath: {
         type: DataTypes.STRING,
@@ -76,7 +79,7 @@ module.exports = (sequelize, DataTypes) => {
   );
   commInfoTb.associate = (models) => {
     models.userInfoTb.hasOne(commInfoTb,
-      { foreignKey: 'userAuthIdx' });
+      { foreignKey: 'userIdx' });
   };
   return commInfoTb;
 };

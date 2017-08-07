@@ -1,9 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
   const usersTb = sequelize.define('userInfoTb',
     {
-      userAuthIdx: {
+      userIdx: {
         type: DataTypes.INTEGER,
-        field: 'user_auth_idx',
+        field: 'user_idx',
         autoIncrement: true,
         primaryKey: true,
       },
@@ -25,9 +25,13 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       userType: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM,
+        values: ['applicant', 'interviewer'],
         field: 'user_type',
         allowNull: false,
+        validate: {
+          isIn: [['applicant', 'interviewer']],
+        },
       },
       userPosition: {
         type: DataTypes.ENUM,
@@ -37,6 +41,11 @@ module.exports = (sequelize, DataTypes) => {
         validate: {
           isIn: [['designer', 'developer']],
         },
+      },
+      userSeason: {
+        type: DataTypes.INTEGER,
+        field: 'user_season',
+        allowNull: false,
       },
     }, {
       timestamps: true,

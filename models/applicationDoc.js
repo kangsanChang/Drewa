@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 
 const appliDocSchema = new mongoose.Schema(
   {
-    cardinalNumber: Number,
-    userAuthIdx: {
+    userIdx: {
       type: Number,
       index: true,
       unique: true,

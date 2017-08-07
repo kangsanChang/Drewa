@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const questionFormSchema = new mongoose.Schema(
   {
-    cardinalNumber: Number,
+    season: Number,
     questions: [String],
     algorithmUrl: String,
   },

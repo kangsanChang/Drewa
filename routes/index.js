@@ -15,7 +15,7 @@ module.exports = (router) => {
   router.route('/')
         .post(applications.postApplications)
         .get(applications.getApplications);
-  router.route('/:userAuthIdx')
+  router.route('/:userIdx')
         .get(applications.getApplication);
   return router;
 };

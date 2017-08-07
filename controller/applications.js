@@ -12,7 +12,7 @@ module.exports.postApplications = async (req, res, next) => {
     // console.log('DATA----- \n', data);
     const userName = data.userName;
     const commData = {
-      userAuthIdx: null,
+      userIdx: null,
       commGender: data.commGender,
       commBirthday: new Date(data.commBirthday),
       commLocation: data.commLocation,
@@ -29,11 +29,11 @@ module.exports.postApplications = async (req, res, next) => {
     // 토큰에서 user email 가져오는 부분 필요...
     // CODE ...
     // 헤더에서 토큰 까서 email 가지고 왔다(tempEmail)고 생각하고 진행.
-    const tempEmail = 'upsert@gmail.com';
+    const tempEmail = 'hello@gmail.com';
 
     const appDocData = {
-      cardinalNumber: 3,
-      userAuthIdx: null,
+      season: 3,
+      userIdx: null,
       algorithmAnswer: data.algorithmAnswer,
       interviewAvailableTime: data.interviewAvailableTime,
       answers: data.answers,
@@ -41,9 +41,9 @@ module.exports.postApplications = async (req, res, next) => {
     // token 정보를 기반으로 appDocData 구성
     await models.userInfoTb.findOne({ where: { userEmail: tempEmail } })
                 .then((result) => {
-                  // userAuthIdx 가져오기
-                  appDocData.userAuthIdx = result.dataValues.userAuthIdx;
-                  commData.userAuthIdx = result.dataValues.userAuthIdx;
+                  // userIdx 가져오기
+                  appDocData.userIdx = result.dataValues.userIdx;
+                  commData.userIdx = result.dataValues.userIdx;
                   // interviewAvailableTime 의 배열 요소들을 Date 타입으로 변경
                   // 몽고디비 확인해보면 string 으로 넣어도 알아서 Date 타입으로 변경해서 저장하는 것 같긴 함
                   appDocData.interviewAvailableTime
@@ -54,7 +54,7 @@ module.exports.postApplications = async (req, res, next) => {
       { where: { userEmail: tempEmail }, transaction: t });
     const commInfoResult = await models.commInfoTb.upsert(commData, { transaction: t });
     const appDocResult = await models.applicationDoc.findOneAndUpdate(
-                                       { userAuthIdx: appDocData.userAuthIdx },
+                                       { userIdx: appDocData.userIdx },
                                        appDocData,
                                        { upsert: true, runValidators: true });
     await t.commit();
@@ -81,10 +81,10 @@ module.exports.getApplication = async (req, res, next) => {
     const result = await models.applicationDoc
                                // 전체다찾고
                                .find()
-                               // 'userAuthIdx' 가
-                               .where('userAuthIdx')
+                               // 'userIdx' 가
+                               .where('userIdx')
                                // 파라메터로 받은값과 같은걸 찾아라
-                               .equals(req.params.userAuthIdx)
+                               .equals(req.params.userIdx)
                                // Promise 반환을 위한 함수
                                .exec();
     res.json(result);

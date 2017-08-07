@@ -42,6 +42,7 @@ module.exports.postSignUp = async (req, res, next) => {
     const newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
+      userSeason: 3,
       userEmail,
       userPosition,
     };
