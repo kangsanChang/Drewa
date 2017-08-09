@@ -53,12 +53,4 @@ module.exports.postSignUp = async (req, res, next) => {
   }
 };
 
-module.exports.tokenVerify = async (req, res, next) => {
-  try {
-    const result = await models.userInfoTb.findOne({ where: { userEmail: req.user.userEmail } });
-    // res.json(result);
-    res.r(result);
-  } catch (err) {
-    next(err);
-  }
-};
+module.exports.getAllApplicant = async (req, res, next) => {};
