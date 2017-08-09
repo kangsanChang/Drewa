@@ -3,8 +3,9 @@ const mongoose = require('mongoose');
 const questionFormSchema = new mongoose.Schema(
   {
     season: Number,
-    questions: [String],
-    algorithmUrl: String,
+    commQuestions: [String],
+    developerQuestions: [String],
+    designerQuestions: [String],
   },
 );
 

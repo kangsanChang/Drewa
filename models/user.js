@@ -37,7 +37,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM,
         values: ['designer', 'developer'],
         field: 'user_position',
-        allowNull: false,
+        allowNull: true,
         validate: {
           isIn: [['designer', 'developer']],
         },

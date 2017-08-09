@@ -9,7 +9,6 @@ const appliDocSchema = new mongoose.Schema(
     },
     answers: [String],
     interviewAvailableTime: [Date],
-    algorithmAnswer: String,
   },
 );
 

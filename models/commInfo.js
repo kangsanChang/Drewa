@@ -17,9 +17,13 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         field: 'comm_location',
       },
-      commUniversity: {
+      commOrganization: {
         type: DataTypes.STRING,
-        field: 'comm_university',
+        field: 'comm_organization',
+      },
+      commMajor: {
+        type: DataTypes.INTEGER,
+        field: 'comm_major',
       },
       commGrade: {
         type: DataTypes.INTEGER,
@@ -53,17 +57,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         field: 'comm_portfolio_url',
       },
-      commBlogUrl: {
-        type: DataTypes.TEXT,
-        field: 'comm_blog_url',
-      },
       commPersonalUrl: {
         type: DataTypes.TEXT,
         field: 'comm_personal_url',
-      },
-      commOtherUrl: {
-        type: DataTypes.TEXT,
-        field: 'comm_other_url',
       },
       commIsPass: {
         type: DataTypes.BOOLEAN,
