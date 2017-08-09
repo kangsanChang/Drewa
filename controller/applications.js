@@ -11,6 +11,7 @@ module.exports.postApplications = async (req, res, next) => {
     const data = req.body;
     // console.log('DATA----- \n', data);
     const userName = data.userName;
+    const userPosition = data.userPosition;
     const commData = {
       userIdx: null,
       commGender: data.commGender,
@@ -30,7 +31,7 @@ module.exports.postApplications = async (req, res, next) => {
     // 토큰에서 user email 가져오는 부분 필요...
     // CODE ...
     // 헤더에서 토큰 까서 email 가지고 왔다(tempEmail)고 생각하고 진행.
-    const tempEmail = 'hello@gmail.com';
+    const tempEmail = 'kiwi@gmail.com';
 
     const appDocData = {
       season: 3,
@@ -50,7 +51,7 @@ module.exports.postApplications = async (req, res, next) => {
                             .forEach((elem, i, arr) => { arr[i] = new Date(elem); });
                 });
     // DB에 넣어주기
-    const userInfoResult = await models.userInfoTb.update({ userName },
+    const userInfoResult = await models.userInfoTb.update({ userName, userPosition },
       { where: { userEmail: tempEmail }, transaction: t });
     const commInfoResult = await models.commInfoTb.upsert(commData, { transaction: t });
     const appDocResult = await models.applicationDoc.findOneAndUpdate(
