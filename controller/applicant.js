@@ -21,13 +21,14 @@ module.exports.postLogin = async (req, res, next) => {
 };
 
 module.exports.postSignUp = async (req, res, next) => {
+  const season = 3;
   try {
     // email, password 빈칸인지 검사
     if (req.body.userEmail === undefined || req.body.userPassword === undefined) {
       throw Error('Property exception');
     }
     // req.body 에서 가져옴 각각 user... 라는 변수명으로 저장함
-    const { userEmail, userPassword, userPosition } = req.body;
+    const { userEmail, userPassword, } = req.body;
 
     // 이미 있는 email 인지 validation 해야 함
     const check = await models.userInfoTb.find({ where: { userEmail } }); // userEmail : userEmail
@@ -36,21 +37,18 @@ module.exports.postSignUp = async (req, res, next) => {
 
     // 이미 존재하는 email 일 경우
     if (check !== null) {
-      await t.rollback(); // 아무것도 트렌젝션 걸려서 DB 만진게 없는데 rollback 할 이유가? 없어도 잘 돌아감
       throw Error('User Already Exists');
     }
     const newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
-      userSeason: 3,
+      userSeason: season,
       userEmail,
-      userPosition,
     };
     const result = await models.userInfoTb.create(newData, { transaction: t });
     await t.commit();
     res.json(result);
   } catch (err) {
-    console.log(err);
     next(err);
   }
 };
