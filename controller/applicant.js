@@ -30,13 +30,13 @@ module.exports.postSignUp = async (req, res, next) => {
     const { userEmail, userPassword, userPosition } = req.body;
 
     // 이미 있는 email 인지 validation 해야 함
-    const check = await models.userInfoTb.find({ where: { userEmail } });
+    const check = await models.userInfoTb.find({ where: { userEmail } }); // userEmail : userEmail
     // Transaction 준비
     const t = await models.sequelize.transaction();
 
     // 이미 존재하는 email 일 경우
     if (check !== null) {
-      await t.rollback();
+      await t.rollback(); // 아무것도 트렌젝션 걸려서 DB 만진게 없는데 rollback 할 이유가? 없어도 잘 돌아감
       throw Error('User Already Exists');
     }
     const newData = {

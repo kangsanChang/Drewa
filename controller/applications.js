@@ -18,7 +18,8 @@ module.exports.postApplications = async (req, res, next) => {
       commLocation: data.commLocation,
       commPhone: data.commPhone,
       commPictureUrl: data.commPictureUrl,
-      commUniversity: data.commUniversity,
+      commOrganization: data.commOrganization,
+      commMajor: data.commMajor,
       commGrade: data.commGrade,
       commKnownPath: data.commKnownPath,
       commPortfolioUrl: data.commPortfolioUrl,
@@ -34,7 +35,6 @@ module.exports.postApplications = async (req, res, next) => {
     const appDocData = {
       season: 3,
       userIdx: null,
-      algorithmAnswer: data.algorithmAnswer,
       interviewAvailableTime: data.interviewAvailableTime,
       answers: data.answers,
     };
