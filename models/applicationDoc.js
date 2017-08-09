@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const appliDocSchema = new mongoose.Schema(
+const applicationDocSchema = new mongoose.Schema(
   {
     userIdx: {
       type: Number,
@@ -12,4 +12,4 @@ const appliDocSchema = new mongoose.Schema(
   },
 );
 
-module.exports = mongoose.model('applicationDoc', appliDocSchema);
+module.exports = mongoose.model('applicationDoc', applicationDocSchema);

@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
         field: 'comm_organization',
       },
       commMajor: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING,
         field: 'comm_major',
       },
       commGrade: {
