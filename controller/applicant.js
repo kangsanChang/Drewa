@@ -53,4 +53,11 @@ module.exports.postSignUp = async (req, res, next) => {
   }
 };
 
-module.exports.getAllApplicant = async (req, res, next) => {};
+module.exports.getAllApplicant = async (req, res, next) => {
+  try {
+    const allApplicants = await models.userInfoTb.findAll({ where: { userType: 'applicant' } });
+    res.r(allApplicants);
+  } catch (err) {
+    next(err);
+  }
+};

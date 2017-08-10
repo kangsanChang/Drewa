@@ -3,7 +3,7 @@
 // COMM_INFO_TB 채우면 됨
 const models = require('../models');
 
-module.exports.postApplications = async (req, res, next) => {
+module.exports.postApplication = async (req, res, next) => {
   // transaction 은 exception 시 rollback 해야 하므로 try 위에 적어준다
   const t = await models.sequelize.transaction();
 
@@ -74,18 +74,29 @@ module.exports.getApplications = async (req, res, next) => {
 };
 
 module.exports.getApplication = async (req, res, next) => {
+  // 본인 토큰의 userIdx 와 맞는지 비교해야 함
   try {
-    const result = await models.applicationDoc
-                               // 전체다찾고
-                               .find()
-                               // 'userIdx' 가
-                               .where('userIdx')
-                               // 파라메터로 받은값과 같은걸 찾아라
-                               .equals(req.params.userIdx)
-                               // Promise 반환을 위한 함수
-                               .exec();
+    const userIdx = req.params.applicantId;
+    const result = [];
+    result.push(await models.applicantInfoTb.findOne({ where: { userIdx } }));
+    result.push(await models.applicationDoc.find().where({ userIdx }).findOne());
     res.r(result);
   } catch (err) {
     next(err);
   }
 };
+
+module.exports.removeApplication = async (req, res, next) => {
+  // 본인 토큰의 userIdx 와 맞는지 비교해야 함
+  try {
+    const userIdx = req.params.applicantId;
+    const result = [];
+    result.push(await models.applicantInfoTb.destroy({ where: { userIdx } }));
+    result.push(await models.userInfoTb.destroy({ where: { userIdx } }));
+    result.push(await models.applicationDoc.remove({ userIdx }));
+    res.r(result);
+  } catch (err) {
+    next(err);
+  }
+};
+

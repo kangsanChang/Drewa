@@ -8,7 +8,7 @@ module.exports = (router) => {
   // 로그인
   router.route('/applicant/login')
         // 로그인, 토큰 발급 (면접관, 지원자)
-        .post(applicant.postLogin);
+        .post(applicant.postLogin); // 면접관 로그인 페이지도 따로 필요할 듯
   // 지원자 관련
   router.route('/applicants')
         // 지원자 등록
@@ -19,12 +19,12 @@ module.exports = (router) => {
   // 지원서 관련 (지원자) - 본인 권한 필요
   router.route('/applicants/:applicantId/application')
         // 지원서 등록, 수정 (upsert)
-        .post(applications.postApplications)
+        .post(applications.postApplication)
         // 지원서 보기 (수정시 본인 지원서 볼때)
         .get(applications.getApplication)
         // 지원서 삭제 (본인 지원서 삭제 할 경우)
-        .delete();
-  // 지원서 내부 업로드 관련
+        .delete(applications.removeApplication);
+  // 지원서 내부 업로드 (사진, 포폴)
   router.route('/applicants/:applicantId/application/picture')
         // 사진 등록
         .post()
