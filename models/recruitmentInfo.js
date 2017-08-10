@@ -1,12 +1,13 @@
 const mongoose = require('mongoose');
 
-const questionFormSchema = new mongoose.Schema(
+const recruitmentInfoSchema = new mongoose.Schema(
   {
     season: Number,
     commQuestions: [String],
     developerQuestions: [String],
     designerQuestions: [String],
+    deadline: Date,
   },
 );
 
-module.exports = mongoose.model('questionForm', questionFormSchema);
+module.exports = mongoose.model('recruitmentInfo', recruitmentInfoSchema);

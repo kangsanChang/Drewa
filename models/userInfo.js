@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const usersTb = sequelize.define('userInfoTb',
+  const userInfoTb = sequelize.define('userInfoTb',
     {
       userIdx: {
         type: DataTypes.INTEGER,
@@ -54,5 +54,5 @@ module.exports = (sequelize, DataTypes) => {
       comment: '전체 회원 테이블',
     },
   );
-  return usersTb;
+  return userInfoTb;
 };

@@ -28,7 +28,7 @@ module.exports.postSignUp = async (req, res, next) => {
       throw Error('Property exception');
     }
     // req.body 에서 가져옴 각각 user... 라는 변수명으로 저장함
-    const { userEmail, userPassword, } = req.body;
+    const { userEmail, userPassword } = req.body;
 
     // 이미 있는 email 인지 validation 해야 함
     const check = await models.userInfoTb.find({ where: { userEmail } }); // userEmail : userEmail

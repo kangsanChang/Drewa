@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
   applicationTb.associate = (models) => {
-    models.commInfoTb.hasOne(applicationTb,
+    models.applicantInfoTb.hasOne(applicationTb,
       { foreignKey: 'commIdx' });
   };
   return applicationTb;
