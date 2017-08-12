@@ -73,13 +73,19 @@ module.exports.getApplications = async (req, res, next) => {
   }
 };
 
-module.exports.getApplication = async (req, res, next) => {
+// 내 정보 조회 (면접자 전용)
+module.exports.getMyApplication = async (req, res, next) => {
   // 본인 토큰의 userIdx 와 맞는지 비교해야 함
   try {
-    const userIdx = req.params.applicantId;
-    const result = [];
-    result.push(await models.applicantInfoTb.findOne({ where: { userIdx } }));
-    result.push(await models.applicationDoc.find().where({ userIdx }).findOne());
+    const userIdx = Number(req.params.applicantId);
+    // 본인조회 아닌경우 에러
+    if (req.user.userIdx !== userIdx) {
+      throw new Error('Unauthorized');
+    }
+    //
+    let result = {};
+    result = await models.applicantInfoTb.findOne({ where: { userIdx } });
+    // result.push(await models.applicationDoc.find().where({ userIdx }).findOne());
     res.r(result);
   } catch (err) {
     next(err);
