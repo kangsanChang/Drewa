@@ -33,10 +33,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(15),
         field: 'applicant_phone',
       },
-      applicantJob: {
-        type: DataTypes.STRING,
-        field: 'applicant_job',
-      },
       applicantOrganization: {
         type: DataTypes.STRING,
         field: 'applicant_organization',
@@ -44,10 +40,6 @@ module.exports = (sequelize, DataTypes) => {
       applicantMajor: {
         type: DataTypes.STRING,
         field: 'applicant_major',
-      },
-      applicantGrade: {
-        type: DataTypes.INTEGER,
-        field: 'applicant_grade',
       },
       applicantPictureUrl: {
         type: DataTypes.TEXT,
