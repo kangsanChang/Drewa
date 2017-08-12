@@ -1,14 +1,9 @@
 const applicant = require('../controller/applicant');
 const applications = require('../controller/applications');
-const files = require('../controller/fileUpload');
 const auth = require('../controller/authController').authenticate;
-
-// File upload using memory storage
-const multer = require('multer');
-const storage = multer.memoryStorage();
-// Accept expected file only (image:jpeg,png / file:pdf)
-const maxSize = 5 * 1000 * 1000; // 5MB
-const upload = multer({ storage, limits: { fileSize: maxSize }, fileFilter: files.fileValidation });
+const files = require('../controller/fileUpload');
+const imageUpload = files.imageUpload;
+const portfolioUpload = files.portfolioUpload;
 
 // /api/ 하위로 들어옴
 
@@ -35,12 +30,12 @@ module.exports = (router) => {
   // 지원서 내부 업로드 (사진, 포폴)
   router.route('/applicants/:applicantId/application/picture')
         // 사진 등록 <input name='user_image'> 기준
-        .post(upload.single('user_image'), files.uploadFile)
+        .post(imageUpload.single('user_image'), files.uploadFile)
         // 사진 삭제
         .delete(files.removePicture);
   router.route('/applicants/:applicationId/application/portfolio')
         // 포트폴리오 등록 <input name='user_portfolio'> 기준
-        .post(upload.single('user_portfolio'), files.uploadFile)
+        .post(portfolioUpload.single('user_portfolio'), files.uploadFile)
         // 포트폴리오 삭제
         .delete(files.removePortfolio);
 

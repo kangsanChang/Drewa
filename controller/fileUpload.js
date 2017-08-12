@@ -1,6 +1,5 @@
 /* eslint-disable consistent-return */
 const config = require('../config/config.json');
-
 // Connect to S3
 const AWS = require('aws-sdk');
 AWS.config.region = config.S3.region;
@@ -9,40 +8,62 @@ AWS.config.update({
   secretAccessKey: config.S3.secretAccessKey,
 });
 
-module.exports.fileValidation = (req, file, cb) => {
+// Setting multer using memory storage
+const multer = require('multer');
+const storage = multer.memoryStorage();
+const imageMax = 2 * 1000 * 1000; // 2 MB
+const portfolioMax = 50 * 1000 * 1000; // 50 MB
+// Set validator
+
+const imageValidation = (req, file, cb) => {
   try {
     if (file.fieldname === 'user_image') {
       if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
         return cb(null, true);
       }
-    } else if (file.fieldname === 'user_portfolio') {
-      if (file.mimetype === 'application/pdf') {
-        return cb(null, true);
-      }
-    } else {
-      return cb(null, false);
     }
+    return cb(null, false);
   } catch (err) {
     return cb(new Error('Unexpected error'));
   }
 };
 
+const portfolioValidation = (req, file, cb) => {
+  try {
+    if (file.fieldname === 'user_portfolio') {
+      if (file.mimetype === 'application/pdf') {
+        return cb(null, true);
+      }
+    }
+    return cb(null, false);
+  } catch (err) {
+    return cb(new Error('Unexpected error'));
+  }
+};
+
+// Accept expected file only (image:jpeg,png / file:pdf)
+module.exports.imageUpload = multer(
+  { storage, limits: { fileSize: imageMax }, fileFilter: imageValidation });
+
+module.exports.portfolioUpload = multer(
+  { storage, limits: { fileSize: portfolioMax }, fileFilter: portfolioValidation });
+
 module.exports.uploadFile = async (req, res, next) => {
   try {
-    // 라우터에 multer 객체를 연결하면 input name 이 일치하는 파일 데이터를 자동으로 받아서 req.file 를 통해 접근가능
-    // 토큰 정보랑 결합해서 이미지 이름 (key) 값 정해주면 될 듯, (예를들면 이메일) 가지고 있는 정보가 이메일이랑 useridx 뿐이니
+    if (!req.file) { throw new Error('Unexpected file!'); }
     const file = req.file;
     const folder = (file.fieldname === 'user_image') ? 'images/' : 'portfolios/';
     const params = {
       Bucket: config.S3.bucketName,
-      Key: folder + file.originalname,
+      Key: folder + file.originalname, // 나중에 userEmail(unique) 값으로 바꾸어야 함
       ACL: 'public-read',
       ContentType: file.mimetype,
     };
     const s3obj = new AWS.S3({ params });
+    // 업데이트 되는 경우에 key 값 같으면 자동으로 덮어 씀
     await s3obj.upload({ Body: file.buffer })
                .send((err, data) => {
-                 res.r(data.Location); // 이 주소로 화면에 사진 파일 연결(?)
+                 res.r(data.Location);
                });
   } catch (err) {
     next(err);
@@ -51,7 +72,15 @@ module.exports.uploadFile = async (req, res, next) => {
 
 module.exports.removePicture = async (req, res, next) => {
   try {
-
+    // token 에서 가져온 user email 을 key 값에 넣어야 함
+    const folder = 'images/';
+    const userEmail = 'hahahoho.png';
+    const checkParams = {
+      Bucket: config.S3.bucketName,
+      Key: folder + userEmail,
+    };
+    const s3 = new AWS.S3();
+    s3.deleteObject(checkParams, (err) => { if (err) throw (err); else res.r('kill image'); });
   } catch (err) {
     next(err);
   }
@@ -59,9 +88,16 @@ module.exports.removePicture = async (req, res, next) => {
 
 module.exports.removePortfolio = async (req, res, next) => {
   try {
-
+    // token 에서 가져온 user email 을 key 값에 넣어야 함
+    const folder = 'portfolios/';
+    const userEmail = 'sample.pdf'; // 한글은 삭제 불가능함
+    const checkParams = {
+      Bucket: config.S3.bucketName,
+      Key: folder + userEmail,
+    };
+    const s3 = new AWS.S3();
+    s3.deleteObject(checkParams, (err) => { if (err) throw (err); else res.r('kill portfolio'); });
   } catch (err) {
     next(err);
   }
 };
-
