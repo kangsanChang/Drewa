@@ -33,6 +33,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(15),
         field: 'applicant_phone',
       },
+      applicantJob: {
+        type: DataTypes.STRING,
+        field: 'applicant_job',
+      },
       applicantOrganization: {
         type: DataTypes.STRING,
         field: 'applicant_organization',
