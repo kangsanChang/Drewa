@@ -1,6 +1,9 @@
 const applicant = require('../controller/applicant');
 const applications = require('../controller/applications');
 const auth = require('../controller/authController').authenticate;
+const files = require('../controller/fileUpload');
+const imageUpload = files.imageUpload;
+const portfolioUpload = files.portfolioUpload;
 
 // /api/ 하위로 들어옴
 
@@ -26,15 +29,15 @@ module.exports = (router) => {
         .delete(applications.removeApplication);
   // 지원서 내부 업로드 (사진, 포폴)
   router.route('/applicants/:applicantId/application/picture')
-        // 사진 등록
-        .post()
+        // 사진 등록 <input name='user_image'> 기준
+        .post(imageUpload.single('user_image'), files.uploadFile)
         // 사진 삭제
-        .delete();
+        .delete(files.removePicture);
   router.route('/applicants/:applicationId/application/portfolio')
-        // 포트폴리오 등록
-        .post()
+        // 포트폴리오 등록 <input name='user_portfolio'> 기준
+        .post(portfolioUpload.single('user_portfolio'), files.uploadFile)
         // 포트폴리오 삭제
-        .delete();
+        .delete(files.removePortfolio);
 
   // 지원서 관련 (면접관) - 면접관 권한 필요
   router.route('/applications')

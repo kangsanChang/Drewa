@@ -1,7 +1,3 @@
-/* eslint-disable camelcase */
-// 지원자 생성 페이지에서 넘어오면 실행되는 logic
-// USER_INFO_TB에 저장한다
-// USER_INFO_TB의 user_name 빼고 다 채움
 const models = require('../models');
 const auth = require('./authController');
 const bcrypt = require('bcrypt');
