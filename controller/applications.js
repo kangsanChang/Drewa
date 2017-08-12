@@ -1,6 +1,3 @@
-// 지원서 작성 페이지에서 넘어오면 실행되는 logic
-// USER_INFO_TB의 user_name 채워야 함
-// COMM_INFO_TB 채우면 됨
 const models = require('../models');
 
 module.exports.postApplication = async (req, res, next) => {
@@ -99,4 +96,3 @@ module.exports.removeApplication = async (req, res, next) => {
     next(err);
   }
 };
-
