@@ -26,8 +26,9 @@ module.exports.jwtPassport = () => {
   }));
 };
 
-const createToken = async (userEmail, userName, userType) => {
+const createToken = async (userIdx, userEmail, userName, userType) => {
   const payloads = {
+    userIdx,
     userEmail,
     userName,
     userType,
