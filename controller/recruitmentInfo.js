@@ -40,8 +40,8 @@ module.exports.getRecruitInfo = async (req, res, next) => {
 
 module.exports.putRecruitInfo = async (req, res, next) => {
   try {
-
-    res.r(result);
+    await models.recruitmentInfo.findOneAndUpdate({ season: req.params.season }, req.body).exec();
+    res.r(null);
   } catch (err) {
     next(err);
   }
