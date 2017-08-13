@@ -26,11 +26,10 @@ module.exports.jwtPassport = () => {
   }));
 };
 
-const createToken = async (userIdx, userEmail, userName, userType) => {
+const createToken = async (userIdx, userEmail, userType) => {
   const payloads = {
     userIdx,
     userEmail,
-    userName,
     userType,
   };
   const token = await jwt.sign(payloads, config.auth.SECRET_KEY,
@@ -53,7 +52,7 @@ module.exports.comparePassword = async (userEmail, userPassword) => {
     if (!isMatch) {
       throw new Error('Password Not match');
     }
-    return createToken(result.userIdx, result.userEmail, result.userName, result.userType);
+    return createToken(result.userIdx, result.userEmail, result.userType);
   } catch (err) {
     throw err;
   }
