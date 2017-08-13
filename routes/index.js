@@ -24,7 +24,7 @@ module.exports = (router) => {
         // 지원서 등록, 수정 (upsert)
         .post(applications.postApplication)
         // 지원서 보기 (수정시 본인 지원서 볼때)
-        .get(applications.getApplication)
+        .get(auth, applications.getMyApplication)
         // 지원서 삭제 (본인 지원서 삭제 할 경우)
         .delete(applications.removeApplication);
   // 지원서 내부 업로드 (사진, 포폴)

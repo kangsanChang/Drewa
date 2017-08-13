@@ -53,7 +53,7 @@ module.exports.comparePassword = async (userEmail, userPassword) => {
     if (!isMatch) {
       throw new Error('Password Not match');
     }
-    return createToken(result.userEmail, result.userName, result.userType);
+    return createToken(result.userIdx, result.userEmail, result.userName, result.userType);
   } catch (err) {
     throw err;
   }
