@@ -46,8 +46,14 @@ module.exports.postSignUp = async (req, res, next) => {
       userEmail,
     };
     const result = await models.userInfoTb.create(newData, { transaction: t });
+    await models.applicantInfoTb.create({ userIdx: result.userIdx }, { transaction: t });
+    const ret = {
+      userIdx: result.userIdx,
+      userEmail: result.userEmail,
+      userSeason: result.userSeason,
+    };
     await t.commit();
-    res.json(result);
+    res.r(ret);
   } catch (err) {
     next(err);
   }
