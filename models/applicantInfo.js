@@ -45,6 +45,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         field: 'applicant_picture_url',
       },
+      applicantInterviewTime: {
+        type: DataTypes.DATE,
+        field: 'applicant_interview_time',
+      },
       isSubmit: {
         type: DataTypes.BOOLEAN,
         field: 'is_submit',
