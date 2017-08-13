@@ -5,6 +5,7 @@ const auth = aController.authenticate;
 const onlyApplicant = aController.onlyApplicant;
 const onlyInterviewer = aController.onlyInterviewer;
 const files = require('../controller/fileUpload');
+const recruit = require('../controller/recruitmentInfo');
 const imageUpload = files.imageUpload;
 const portfolioUpload = files.portfolioUpload;
 
@@ -51,5 +52,11 @@ module.exports = (router) => {
         .get()
         // 특정 지원서 평가한것 보내기
         .post();
+  router.route('/recruitmentInfo')
+        .post(auth, onlyInterviewer, recruit.postRecruitInfo)
+        // get 은 퍼블릭 권한으로 아무나 조회 가능
+        .get(recruit.getRecruitInfo);
+  router.route('/recruitmentInfo/:season')
+        .put(auth, onlyInterviewer, recruit.putRecruitInfo);
   return router;
 };

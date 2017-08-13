@@ -66,7 +66,7 @@ module.exports.onlyApplicant = async (req, res, next) => {
     if (req.user.userType !== 'applicant' ||
       req.user.userIdx !== Number(req.params.applicantId)) {
       err = new Error('Permission denied');
-      err.status(403);
+      err.status = 403;
       throw err;
     }
     next();
@@ -82,7 +82,7 @@ module.exports.onlyInterviewer = async (req, res, next) => {
     // 본인의 applications 에 대해서만 유효함
     if (req.user.userType !== 'interviewer') {
       err = new Error('Permission denied');
-      err.status(403);
+      err.status = 403;
       throw err;
     }
     next();

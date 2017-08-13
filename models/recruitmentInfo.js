@@ -7,7 +7,7 @@ const recruitmentInfoSchema = new mongoose.Schema(
     developerQuestions: [String],
     designerQuestions: [String],
     deadline: Date,
-    interviewTime: [Date],
+    interviewTime: [String],
   },
 );
 
