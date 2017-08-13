@@ -1,6 +1,9 @@
 const applicant = require('../controller/applicant');
 const applications = require('../controller/applications');
-const auth = require('../controller/authController').authenticate;
+const aController = require('../controller/authController');
+const auth = aController.authenticate;
+const onlyApplicant = aController.onlyApplicant;
+const onlyInterviewer = aController.onlyInterviewer;
 const files = require('../controller/fileUpload');
 const imageUpload = files.imageUpload;
 const portfolioUpload = files.portfolioUpload;
@@ -24,7 +27,7 @@ module.exports = (router) => {
         // 지원서 등록, 수정 (upsert)
         .post(applications.postApplication)
         // 지원서 보기 (수정시 본인 지원서 볼때)
-        .get(auth, applications.getMyApplication)
+        .get(auth, onlyApplicant, applications.getMyApplication)
         // 지원서 삭제 (본인 지원서 삭제 할 경우)
         .delete(applications.removeApplication);
   // 지원서 내부 업로드 (사진, 포폴)

@@ -58,4 +58,37 @@ module.exports.comparePassword = async (userEmail, userPassword) => {
   }
 };
 
+module.exports.onlyApplicant = async (req, res, next) => {
+  try {
+    let err = null;
+    // userType 이 'applicant' 인 요청만 유효함
+    // 본인의 applications 에 대해서만 유효함
+    if (req.user.userType !== 'applicant' ||
+      req.user.userIdx !== Number(req.params.applicantId)) {
+      err = new Error('Permission denied');
+      err.status(403);
+      throw err;
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports.onlyInterviewer = async (req, res, next) => {
+  try {
+    let err = null;
+    // userType 이 'applicant' 인 요청만 유효함
+    // 본인의 applications 에 대해서만 유효함
+    if (req.user.userType !== 'interviewer') {
+      err = new Error('Permission denied');
+      err.status(403);
+      throw err;
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports.authenticate = passport.authenticate('jwt', { session: false });
