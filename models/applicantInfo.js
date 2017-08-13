@@ -52,6 +52,7 @@ module.exports = (sequelize, DataTypes) => {
       isSubmit: {
         type: DataTypes.BOOLEAN,
         field: 'is_submit',
+        defaultValue: false,
       },
       finalPass: {
         type: DataTypes.BOOLEAN,
