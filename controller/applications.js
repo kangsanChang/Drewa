@@ -1,22 +1,10 @@
 const models = require('../models');
 
-module.exports.postApplication = async (req, res, next) => {
-  // transaction 은 exception 시 rollback 해야 하므로 try 위에 적어준다
+const upsertApplication = async (req) => {
   const t = await models.sequelize.transaction();
 
   try {
     const userIdx = req.params.applicantId;
-
-    // token에 있는 userIdx 값과 url param으로 온 userIdx 가 맞아야 함
-    // if (req.user.userIdx !== req.param.applicantId) {
-    //   throw Error('권한이 없습니다.');
-    // }
-
-    // (임시) 유효한 row 검사
-    const check = await models.userInfoTb.findOne({ where: { userIdx } });
-    if (!check) {
-      throw new Error('param is not include in user table!');
-    }
 
     const data = req.body;
     const userName = data.userName;
@@ -53,13 +41,23 @@ module.exports.postApplication = async (req, res, next) => {
       { userIdx }, appDocData, { upsert: true, runValidators: true });
     await t.commit();
     // 결과값 응답
-    const results = [userInfoResult, applicantInfoResult, appDocResult];
+    return [userInfoResult, applicantInfoResult, appDocResult];
+  } catch (err) {
+    t.rollback();
+    throw (err);
+  }
+};
+
+const postApplication = async (req, res, next) => {
+  try {
+    const results = await upsertApplication(req);
     res.r(results);
   } catch (err) {
     next(err);
-    t.rollback();
   }
 };
+
+module.exports.postApplication = postApplication;
 
 module.exports.getApplications = async (req, res, next) => {
   try {
@@ -70,6 +68,18 @@ module.exports.getApplications = async (req, res, next) => {
   }
 };
 
+module.exports.submitApplication = async (req, res, next) => {
+  try {
+    const updateApplicationResult = upsertApplication(req);
+    const userIdx = req.user.userIdx;
+    const updateSubmitResult = await models.applicantInfoTb.update({ isSubmit: true },
+      { where: { userIdx } });
+    const results = [updateApplicationResult, updateSubmitResult];
+    res.r(results);
+  } catch (err) {
+    next(err);
+  }
+};
 // 내 정보 조회 (면접자 전용)
 module.exports.getMyApplication = async (req, res, next) => {
   // 본인 토큰의 userIdx 와 맞는지 비교해야 함
