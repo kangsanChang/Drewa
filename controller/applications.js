@@ -79,10 +79,11 @@ module.exports.getMyApplication = async (req, res, next) => {
     if (req.user.userIdx !== userIdx) {
       throw new Error('Unauthorized');
     }
-    //
-    let result = {};
-    result = await models.applicantInfoTb.findOne({ where: { userIdx } });
-    // result.push(await models.applicationDoc.find().where({ userIdx }).findOne());
+    const result = await models.applicationDoc.findOne({ userIdx })
+                               .exec();
+    const ret = await models.applicantInfoTb.findOne({ where: { userIdx } });
+    // ret.dataValues 에 있는 모든 인자를 돌며, 밑의 구문 실행함
+    Object.keys(ret.dataValues).map((d) => result._doc[d] = ret.dataValues[d]);
     res.r(result);
   } catch (err) {
     next(err);
