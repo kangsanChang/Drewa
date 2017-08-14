@@ -7,9 +7,9 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
       },
-      commIdx: {
+      applicantIdx: {
         type: DataTypes.INTEGER,
-        field: 'comm_idx',
+        field: 'applicant_idx',
       },
       applicationDocument: {
         type: DataTypes.STRING,
