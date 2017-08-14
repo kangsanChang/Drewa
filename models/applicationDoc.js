@@ -8,7 +8,7 @@ const applicationDocSchema = new mongoose.Schema(
       unique: true,
     },
     entryRoute: String,
-    portfolioFileUrl: String,
+    portfolioFilename: String,
     personalUrl: [String],
     answers: [String],
     interviewAvailableTime: [Date],
