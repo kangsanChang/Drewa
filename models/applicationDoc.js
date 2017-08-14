@@ -11,7 +11,7 @@ const applicationDocSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    portfolioFileUrl: {
+    portfolioFilename: {
       type: String,
       default: null,
     },

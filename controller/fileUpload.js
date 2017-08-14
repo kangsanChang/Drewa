@@ -49,10 +49,8 @@ module.exports.imageUpload = multer(
 module.exports.portfolioUpload = multer(
   { storage, limits: { fileSize: portfolioMax }, fileFilter: portfolioValidation });
 
-// TODO: upload file 부분과 deletePic, deleteport.. 부분이 겹치는 코드 많음. 따로 빼야 함
-
+//TODO: 따로 뺴야함. 스파게티 청소 필요
 const clearToS3 = (removeKeyPath) => {
-  console.log('inside clearToS3 : ', removeKeyPath);
   return new Promise(async (resolve, reject) => {
     const params = {
       Bucket: config.S3.bucketName,
@@ -100,16 +98,21 @@ module.exports.uploadFile = async (req, res, next) => {
                       // DB 안에 picture filename 있으면 삭제하기
                       const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
                       clearToS3(removeKeyPath);
-                    } else {
-                      console.log('field is null... pass!');
                     }
                   });
       // 새로 저장할 file 이름으로 Update 시키기 (null 이어도 테이블 셀이 존재는 하므로 update)
       await models.applicantInfoTb.update({ applicantPictureFilename: file.originalname },
         { where: { userIdx: req.user.userIdx } });
     } else if (fileType === 'portfolios') {
-      await models.applicationDoc.findOneAndUpdate({ userIdx: req.user.userIdx },
+      const existObject = await models.applicationDoc.findOneAndUpdate(
+        { userIdx: req.user.userIdx },
         { portfolioFilename: file.originalname }, { ranValidators: true });
+      const existFileName = existObject.portfolioFilename;
+      if (existFileName !== null) {
+        // DB 안에 picture filename 있으면 삭제하기
+        const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
+        clearToS3(removeKeyPath);
+      }
     }
     const result = await saveToS3(file, keyName);
     res.r(result);
@@ -118,7 +121,6 @@ module.exports.uploadFile = async (req, res, next) => {
   }
 };
 
-// Todo : Find and Remove picture 로 이름 바꿔도 좋을 듯 그래서 위에서도 쓰고 따로 export 시키자
 module.exports.removePicture = async (req, res, next) => {
   try {
     const userEmail = req.user.userEmail;
@@ -130,13 +132,12 @@ module.exports.removePicture = async (req, res, next) => {
                   if (existFileName !== null) {
                     const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
                     clearToS3(removeKeyPath);
-                  } else {
-                    console.log('field is null... pass!');
                   }
                 });
+    // filename null 로 만들기
     await models.applicantInfoTb.update({ applicantPictureFilename: null },
       { where: { userIdx: req.user.userIdx } });
-    res.r('remove success!!');
+    res.r('remove picture success!!');
   } catch (err) {
     next(err);
   }
@@ -144,15 +145,20 @@ module.exports.removePicture = async (req, res, next) => {
 
 module.exports.removePortfolio = async (req, res, next) => {
   try {
-    // token 에서 가져온 user email 을 key 값에 넣어야 함
-    const folder = 'portfolios/';
-    const userEmail = 'sample.pdf'; // 한글은 삭제 불가능함
-    const checkParams = {
-      Bucket: config.S3.bucketName,
-      Key: folder + userEmail,
-    };
-    const s3 = new AWS.S3();
-    s3.deleteObject(checkParams, (err) => { if (err) throw (err); else res.r('kill portfolio'); });
+    const userEmail = req.user.userEmail;
+    const fileType = 'portfolios';
+    const encoded = Buffer.from(userEmail).toString('base64');
+    await models.applicationDoc.findOne({ userIdx: req.user.userIdx }, (err, data) => {
+      const existFileName = data.portfolioFilename;
+      if (existFileName !== null) {
+        const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
+        clearToS3(removeKeyPath);
+      }
+    });
+    // filename null 로 만들기
+    await models.applicationDoc.findOneAndUpdate({ userIdx: req.user.userIdx },
+      { portfolioFilename: null });
+    res.r('remove portfolio success!!');
   } catch (err) {
     next(err);
   }
