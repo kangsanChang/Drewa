@@ -37,6 +37,8 @@ const createToken = async (userIdx, userEmail, userType) => {
   return token;
 };
 
+module.exports.createToken = createToken;
+
 module.exports.comparePassword = async (userEmail, userPassword) => {
   /*
    * 비밀번호 비교해서 토큰 발급까지 함.

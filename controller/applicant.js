@@ -58,7 +58,8 @@ module.exports.postSignUp = async (req, res, next) => {
       userSeason: result.userSeason,
     };
     await t.commit();
-    res.r(ret);
+    const token = await auth.createToken(result.userIdx, userEmail, 'applicant');
+    res.r(token);
   } catch (err) {
     await t.rollback();
     next(err);
