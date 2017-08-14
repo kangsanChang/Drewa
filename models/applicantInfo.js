@@ -49,15 +49,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.DATE,
         field: 'applicant_interview_time',
       },
-      isSubmit: {
-        type: DataTypes.BOOLEAN,
-        field: 'is_submit',
-        defaultValue: false,
-      },
-      finalPass: {
-        type: DataTypes.BOOLEAN,
-        field: 'final_pass',
-      },
     },
     {
       timestamps: true,
