@@ -23,6 +23,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         field: 'eval_doc_comment',
       },
+      DocPass: {
+        type: DataTypes.BOOLEAN,
+        field: 'doc_pass',
+      },
       evalInterviewPoint: {
         type: DataTypes.INTEGER(2),
         field: 'eval_interview_point',
@@ -31,9 +35,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         field: 'eval_interview_comment',
       },
-      evalIsPass: {
+      finalPass: {
         type: DataTypes.BOOLEAN,
-        field: 'eval_is_pass',
+        field: 'final_pass',
       },
     },
     {
