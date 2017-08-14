@@ -41,12 +41,12 @@ module.exports = (router) => {
         // 사진 등록 <input name='user_image'> 기준
         .post(auth, onlyApplicant, imageUpload.single('user_image'), files.uploadFile)
         // 사진 삭제
-        .delete(files.removePicture);
+        .delete(auth, onlyApplicant, files.removePicture);
   router.route('/applicants/:applicantId/application/portfolio')
         // 포트폴리오 등록 <input name='user_portfolio'> 기준
-        .post(portfolioUpload.single('user_portfolio'), files.uploadFile)
+        .post(auth, onlyApplicant, portfolioUpload.single('user_portfolio'), files.uploadFile)
         // 포트폴리오 삭제
-        .delete(files.removePortfolio);
+        .delete(auth, onlyApplicant, files.removePortfolio);
 
   // 지원서 관련 (면접관) - 면접관 권한 필요
   router.route('/applications')

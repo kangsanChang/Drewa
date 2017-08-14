@@ -20,7 +20,6 @@ const upsertApplication = async (req) => {
       applicantMajor: data.applicantMajor,
       applicantGrade: data.applicantGrade,
       applicantPhone: data.applicantPhone,
-      applicantPictureUrl: data.applicantPictureUrl,
     };
 
     const appDocData = {
