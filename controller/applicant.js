@@ -32,19 +32,26 @@ module.exports.postSignUp = async (req, res, next) => {
       throw Error('User Already Exists');
     }
     let season = await models.recruitmentInfo.find()
-                               .sort('-createdAt')
-                               .limit(1)
-                               .select('season')
-                               .exec();
+                             .sort('-createdAt')
+                             .limit(1)
+                             .select('season')
+                             .exec();
     season = season[0].season;
-    const newData = {
+    let newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
       userSeason: season,
       userEmail,
     };
     const result = await models.userInfoTb.create(newData, { transaction: t });
-    await models.applicantInfoTb.create({ userIdx: result.userIdx }, { transaction: t });
+    const applicantRet = await models.applicantInfoTb.create({ userIdx: result.userIdx },
+      { transaction: t });
+    const applicationRet = await models.applicationDoc.create({ userIdx: result.userIdx });
+    newData = {
+      applicantIdx: applicantRet.applicantIdx,
+      applicationDocument: applicationRet._id.toString(),
+    };
+    await models.applicationTb.create(newData, { transaction: t });
     const ret = {
       userIdx: result.userIdx,
       userEmail: result.userEmail,
