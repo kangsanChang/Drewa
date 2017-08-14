@@ -8,16 +8,23 @@ class Mailservice {
   constructor(smtp) {
     this.transporter = nodemailer.createTransport(smtps[smtp]);
   }
-
+  static async sendTest(req, res, next) {
+    const result = await Mailservice.sendVerification(req.body.addr);
+    res.json(result);
+  }
   static async sendVerification(receiver) {
-    const code = Math.floor(Math.random() * 8999) + 1000;
-    const mailOptions = {
-      from: '"디프만 리크루트" <recruit@depromeet.com>',
-      to: receiver,
-      subject: '[디프만] 이메일 인증 코드입니다.',
-      text: `아래의 코드를 입력해주세요.\nCODE : ${code}`,
-    };
-    return this.getInstace().send(mailOptions);
+    try {
+      const code = Math.floor(Math.random() * 8999) + 1000;
+      const mailOptions = {
+        from: '"디프만" <apply@depromeet.com>',
+        to: receiver,
+        subject: '[디프만] 이메일 인증 코드입니다.',
+        text: `아래의 코드를 입력해주세요.\nCODE : ${code}`,
+      };
+      return await this.getInstace().send(mailOptions);
+    } catch (err) {
+      throw err;
+    }
   }
 
   static async sendHello(receiver) {
@@ -26,7 +33,7 @@ class Mailservice {
         throw new Error('There is no Receiver');
       }
       const mailOptions = {
-        from: '"디프만 리크루트" <recruit@depromeet.com>',
+        from: '"디프만" <apply@depromeet.com>',
         to: receiver,
         subject: '[디프만] 지원해주셔서 감사합니다',
         text: '귀하의 지원서가 정상적으로 접수되었습니다.\n접수해주셔서 감사합니다',
@@ -43,15 +50,16 @@ class Mailservice {
         if (error) {
           reject(error);
         }
-        console.log('샌드 : ', info);
-        resolve(info.messageId);
+        // console.log('샌드 : ', info);
+        // 메일 받은 대상 email 주소 반환함
+        resolve(info.envelope.to[0]);
       });
     });
   }
 
   static getInstace() {
     if (global.email === undefined) {
-      global.email = new Mailservice('hincosmtp');
+      global.email = new Mailservice('gsmtp');
     }
     return global.email;
   }
