@@ -8,6 +8,8 @@ const recruitmentInfoSchema = new mongoose.Schema(
     designerQuestions: [String],
     deadline: Date,
     interviewTime: [String],
+  }, {
+    timestamps: { createdAt: 'createdAt' },
   },
 );
 

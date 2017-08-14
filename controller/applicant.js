@@ -15,7 +15,6 @@ module.exports.postLogin = async (req, res, next) => {
 };
 
 module.exports.postSignUp = async (req, res, next) => {
-  const season = 3;
   // Transaction 준비
   const t = await models.sequelize.transaction();
   try {
@@ -32,7 +31,12 @@ module.exports.postSignUp = async (req, res, next) => {
     if (check !== null) {
       throw Error('User Already Exists');
     }
-    // Todo : season 을 디비에서 뽑아 적용하기
+    let season = await models.recruitmentInfo.find()
+                               .sort('-createdAt')
+                               .limit(1)
+                               .select('season')
+                               .exec();
+    season = season[0].season;
     const newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
