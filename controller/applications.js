@@ -34,8 +34,8 @@ const upsertApplication = async (req) => {
     // DB에 넣어주기
     const userInfoResult = await models.userInfoTb.update({ userName, userPosition },
       { where: { userIdx }, transaction: t });
-    const applicantInfoResult = await models.applicantInfoTb.upsert(applicantData,
-      { transaction: t });
+    const applicantInfoResult = await models.applicantInfoTb.update(applicantData,
+      { where: { userIdx }, transaction: t });
     const appDocResult = await models.applicationDoc.findOneAndUpdate(
       { userIdx }, appDocData, { upsert: true, runValidators: true });
     await t.commit();
