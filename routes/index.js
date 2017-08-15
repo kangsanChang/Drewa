@@ -13,7 +13,7 @@ const portfolioUpload = files.portfolioUpload;
 
 module.exports = (router) => {
   // 로그인
-  router.route('/applicant/login')
+  router.route('/applicants/login')
         // 로그인, 토큰 발급 (면접관, 지원자)
         .post(applicant.postLogin); // 면접관 로그인 페이지도 따로 필요할 듯
   // 지원자 관련
