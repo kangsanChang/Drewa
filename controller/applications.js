@@ -82,14 +82,36 @@ module.exports.submitApplication = async (req, res, next) => {
 };
 
 // 내 정보 조회 (면접자 전용)
-// TODO: JOIN 연산 써보기 (sequelize 에서 include)
+// Form에 줄 정보만 선별적으로 만들어야 해서 Join 연산보다 쿼리 두번 실행하는 것이 낫다고 판단
 module.exports.getMyApplication = async (req, res, next) => {
   try {
     const userIdx = Number(req.params.applicantId);
-    const result = await models.applicationDoc.findOne({ userIdx }).exec();
-    const ret = await models.applicantInfoTb.findOne({ where: { userIdx } });
-    // ret.dataValues 에 있는 모든 인자를 돌며, 밑의 구문 실행함
-    Object.keys(ret.dataValues).map((d) => result._doc[d] = ret.dataValues[d]);
+    const applicationDocRet = await models.applicationDoc.findOne({ userIdx }).exec();
+    const userInfo = await models.userInfoTb.findOne({ where: { userIdx } });
+    const userInfoRet = userInfo.dataValues;
+    const applicantInfo = await models.applicantInfoTb.findOne({ where: { userIdx } });
+    const applicantInfoRet = applicantInfo.dataValues;
+
+    const result = {
+      // From UserInfo
+      userName: userInfoRet.userName,
+      userPosition: userInfoRet.userPosition,
+      // From ApplicantInfo (field 이름 'userXyz' 로 변경)
+      userGender: applicantInfoRet.applicantGender,
+      userBirthday: applicantInfoRet.applicantBirthday,
+      userLocation: applicantInfoRet.applicantLocation,
+      userPhone: applicantInfoRet.applicantPhone,
+      userOrganization: applicantInfoRet.applicantOrganization,
+      userMajor: applicantInfoRet.applicantMajor,
+      userPictureFilename: applicantInfoRet.applicantPictureFilename,
+      // From ApplicantDoc (field 이름 'userXyz' 로 변경)
+      userEntryRoute: applicationDocRet.entryRoute,
+      userPortfolioFilename: applicationDocRet.portfolioFilename,
+      userPersonalUrl: applicationDocRet.personalUrl,
+      userAnswers: applicationDocRet.answers,
+      userInterviewAvailableTime: applicationDocRet.interviewAvailableTime,
+    };
+
     res.r(result);
   } catch (err) {
     next(err);
