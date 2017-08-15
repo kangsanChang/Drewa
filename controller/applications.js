@@ -70,27 +70,23 @@ module.exports.postApplication = postApplication;
 module.exports.submitApplication = async (req, res, next) => {
   try {
     const updateApplicationResult = updateApplication(req);
-    const updateSubmitResult = await models.applicantInfoTb.findOne(
-      { where: { userIdx: req.user.userIdx } }).then((data) => {
-        models.applicationTb.update({ isSubmit: true },
-          { where: { applicantIdx: data.dataValues.applicantIdx } });
-      },
-    );
-    const results = [updateApplicationResult, updateSubmitResult];
+    const data = await models.applicantInfoTb.findOne(
+      { where: { userIdx: req.user.userIdx } });
+    const applicationTbResult = await models.applicationTb.update({ isSubmit: true },
+      { where: { applicantIdx: data.dataValues.applicantIdx } });
+    const results = [updateApplicationResult, applicationTbResult];
     res.r(results);
   } catch (err) {
     next(err);
   }
 };
+
 // 내 정보 조회 (면접자 전용)
+// TODO: JOIN 연산 써보기 (sequelize 에서 include)
 module.exports.getMyApplication = async (req, res, next) => {
   try {
     const userIdx = Number(req.params.applicantId);
-    if (req.user.userIdx !== userIdx) {
-      throw new Error('Unauthorized');
-    }
-    const result = await models.applicationDoc.findOne({ userIdx })
-                               .exec();
+    const result = await models.applicationDoc.findOne({ userIdx }).exec();
     const ret = await models.applicantInfoTb.findOne({ where: { userIdx } });
     // ret.dataValues 에 있는 모든 인자를 돌며, 밑의 구문 실행함
     Object.keys(ret.dataValues).map((d) => result._doc[d] = ret.dataValues[d]);
@@ -104,9 +100,12 @@ module.exports.removeApplication = async (req, res, next) => {
   try {
     const userIdx = req.params.applicantId;
     const result = [];
+    const data = await models.applicantInfoTb.findOne({ where: { userIdx } });
     result.push(await models.applicantInfoTb.destroy({ where: { userIdx } }));
     result.push(await models.userInfoTb.destroy({ where: { userIdx } }));
     result.push(await models.applicationDoc.remove({ userIdx }));
+    result.push(await models.applicationTb.destroy(
+      { where: { applicantIdx: data.dataValues.applicantIdx } }));
     res.r(result);
   } catch (err) {
     next(err);
