@@ -1,6 +1,15 @@
 const models = require('../models');
 
-const upsertApplication = async (req) => {
+module.exports.getApplications = async (req, res, next) => {
+  try {
+    const result = await models.applicationDoc.find().exec();
+    res.r(result);
+  } catch (err) {
+    next(err);
+  }
+};
+
+const updateApplication = async (req) => {
   const t = await models.sequelize.transaction();
 
   try {
@@ -37,7 +46,7 @@ const upsertApplication = async (req) => {
     const applicantInfoResult = await models.applicantInfoTb.update(applicantData,
       { where: { userIdx }, transaction: t });
     const appDocResult = await models.applicationDoc.findOneAndUpdate(
-      { userIdx }, appDocData, { upsert: true, runValidators: true });
+      { userIdx }, appDocData, { runValidators: true });
     await t.commit();
     // 결과값 응답
     return [userInfoResult, applicantInfoResult, appDocResult];
@@ -49,7 +58,7 @@ const upsertApplication = async (req) => {
 
 const postApplication = async (req, res, next) => {
   try {
-    const results = await upsertApplication(req);
+    const results = await updateApplication(req);
     res.r(results);
   } catch (err) {
     next(err);
@@ -58,21 +67,15 @@ const postApplication = async (req, res, next) => {
 
 module.exports.postApplication = postApplication;
 
-module.exports.getApplications = async (req, res, next) => {
-  try {
-    const result = await models.applicationDoc.find().exec();
-    res.r(result);
-  } catch (err) {
-    next(err);
-  }
-};
-
 module.exports.submitApplication = async (req, res, next) => {
   try {
-    const updateApplicationResult = upsertApplication(req);
-    const userIdx = req.user.userIdx;
-    const updateSubmitResult = await models.applicantInfoTb.update({ isSubmit: true },
-      { where: { userIdx } });
+    const updateApplicationResult = updateApplication(req);
+    const updateSubmitResult = await models.applicantInfoTb.findOne(
+      { where: { userIdx: req.user.userIdx } }).then((data) => {
+        models.applicationTb.update({ isSubmit: true },
+          { where: { applicantIdx: data.dataValues.applicantIdx } });
+      },
+    );
     const results = [updateApplicationResult, updateSubmitResult];
     res.r(results);
   } catch (err) {
@@ -81,10 +84,8 @@ module.exports.submitApplication = async (req, res, next) => {
 };
 // 내 정보 조회 (면접자 전용)
 module.exports.getMyApplication = async (req, res, next) => {
-  // 본인 토큰의 userIdx 와 맞는지 비교해야 함
   try {
     const userIdx = Number(req.params.applicantId);
-    // 본인조회 아닌경우 에러
     if (req.user.userIdx !== userIdx) {
       throw new Error('Unauthorized');
     }
@@ -100,7 +101,6 @@ module.exports.getMyApplication = async (req, res, next) => {
 };
 
 module.exports.removeApplication = async (req, res, next) => {
-  // 본인 토큰의 userIdx 와 맞는지 비교해야 함
   try {
     const userIdx = req.params.applicantId;
     const result = [];
