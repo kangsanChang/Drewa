@@ -114,7 +114,11 @@ module.exports.uploadFile = async (req, res, next) => {
         clearToS3(removeKeyPath);
       }
     }
-    const result = await saveToS3(file, keyName);
+    const s3Url = await saveToS3(file, keyName);
+    const result = {
+      url: s3Url,
+      fileName: file.originalname,
+    };
     res.r(result);
   } catch (err) {
     next(err);
