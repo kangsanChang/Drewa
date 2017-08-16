@@ -39,6 +39,7 @@ const createToken = async (userIdx, userEmail, userType) => {
 
 module.exports.createToken = createToken;
 
+// Todo : 토큰과 applicantIdx(DB의 userIdx)를 합쳐서 만든 data를 리턴. 이름을 applicantIdx로 통일하면 좋겠다
 const comparePassword = async (userEmail, userPassword) => {
   /*
    * 비밀번호 비교해서 토큰 발급까지 함.
@@ -54,7 +55,12 @@ const comparePassword = async (userEmail, userPassword) => {
     if (!isMatch) {
       throw new Error('Password Not match');
     }
-    return createToken(result.userIdx, result.userEmail, result.userType);
+    const token = await createToken(result.userIdx, result.userEmail, result.userType);
+    const data = {
+      token,
+      applicantIdx: result.userIdx,
+    };
+    return data;
   } catch (err) {
     throw err;
   }
@@ -82,8 +88,8 @@ module.exports.postLogin = async (req, res, next) => {
     if (req.body.userEmail === undefined || req.body.userPassword === undefined) {
       throw Error('Property exception');
     }
-    const token = await comparePassword(req.body.userEmail, req.body.userPassword);
-    res.r(token);
+    const data = await comparePassword(req.body.userEmail, req.body.userPassword);
+    res.r(data);
   } catch (err) {
     next(err);
   }
