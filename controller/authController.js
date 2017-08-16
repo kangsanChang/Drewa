@@ -83,6 +83,22 @@ module.exports.onlyApplicant = async (req, res, next) => {
   }
 };
 
+module.exports.onlyInterviewer = async (req, res, next) => {
+  try {
+    let err = null;
+    // userType 이 'interviewer' 인 요청만 유효함
+    // 본인의 applications 에 대해서만 유효함
+    if (req.user.userType !== 'interviewer') {
+      err = new Error('Permission denied');
+      err.status = 403;
+      throw err;
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports.postLogin = async (req, res, next) => {
   try {
     if (req.body.userEmail === undefined || req.body.userPassword === undefined) {
@@ -95,16 +111,54 @@ module.exports.postLogin = async (req, res, next) => {
   }
 };
 
-module.exports.onlyInterviewer = async (req, res, next) => {
+const verifyDeadline = async () => {
   try {
-    let err = null;
-    // userType 이 'applicant' 인 요청만 유효함
-    // 본인의 applications 에 대해서만 유효함
-    if (req.user.userType !== 'interviewer') {
-      err = new Error('Permission denied');
-      err.status = 403;
+    const result = await models.recruitmentInfo.find()
+                               .sort('-createdAt')
+                               .limit(1)
+                               .exec();
+    const now = new Date().toLocaleString();
+    const time = new Date(result[0].deadline).toLocaleString();
+    return now > time;
+  } catch (err) {
+    throw err;
+  }
+};
+
+module.exports.verifyDeadline = verifyDeadline;
+
+module.exports.checkTime = async (req, res, next) => {
+  try {
+    if (await verifyDeadline()) {
+      const err = new Error('모집 기간이 지났습니다!');
+      err.status = 400;
       throw err;
     }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+module.exports.checkSubmit = async (req, res, next) => {
+  try {
+    const result = await models.applicantInfoTb.findOne({
+      include: [
+        {
+          model: models.applicationTb,
+          // attributes: ['applicantIdx', 'isSubmit'],
+        }],
+      where: {
+        userIdx: req.user.userIdx,
+      },
+    });
+    if (result.applicationTb.isSubmit) {
+      const err = new Error('이미 제출하셨습니다!');
+      err.status = 400;
+      throw err;
+    }
+    req.applicantIdx = result.applicationTb.applicantIdx;
     next();
   } catch (err) {
     next(err);
