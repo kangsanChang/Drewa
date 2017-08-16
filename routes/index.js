@@ -13,13 +13,13 @@ const portfolioUpload = files.portfolioUpload;
 
 module.exports = (router) => {
   // 로그인
-  router.route('/applicants/login')
+  router.route('/login')
         // 로그인, 토큰 발급 (면접관, 지원자)
-        .post(applicant.postLogin); // 면접관 로그인 페이지도 따로 필요할 듯
+        .post(aController.postLogin); // 면접관 로그인 페이지도 따로 필요할 듯
   // 지원자 관련
   router.route('/applicants')
         // 지원자 등록
-        .post(applicant.postSignUp)
+        .post(applicant.applicantSignUp)
         // 지원자 전체 불러오기 (관리자) - 관리자 권한 필요
         .get(applicant.getAllApplicant);
 
