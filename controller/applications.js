@@ -1,4 +1,5 @@
 const models = require('../models');
+const email = require('./Email');
 
 module.exports.getApplications = async (req, res, next) => {
   try {
@@ -69,12 +70,13 @@ module.exports.postApplication = postApplication;
 
 module.exports.submitApplication = async (req, res, next) => {
   try {
-    const updateApplicationResult = updateApplication(req);
-    const data = await models.applicantInfoTb.findOne(
-      { where: { userIdx: req.user.userIdx } });
-    const applicationTbResult = await models.applicationTb.update({ isSubmit: true },
-      { where: { applicantIdx: data.dataValues.applicantIdx } });
-    const results = [updateApplicationResult, applicationTbResult];
+    await updateApplication(req);
+    await models.applicationTb.update({ isSubmit: true },
+      { where: { applicantIdx: req.applicantIdx } });
+    // TODO : NODE_ENV 에 따라서 다르게 작동하는것 설정하기
+    // PRODUCTION 에서는 킬것!
+    // const results = await email.sendHello(req.user.userEmail);
+    const results = null;
     res.r(results);
   } catch (err) {
     next(err);

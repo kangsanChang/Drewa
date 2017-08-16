@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
   );
   applicationTb.associate = (models) => {
     models.applicantInfoTb.hasOne(applicationTb,
-      { foreignKey: 'commIdx' });
+      { foreignKey: 'applicantIdx' });
   };
   return applicationTb;
 };

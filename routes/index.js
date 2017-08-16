@@ -4,6 +4,8 @@ const aController = require('../controller/authController');
 const auth = aController.authenticate;
 const onlyApplicant = aController.onlyApplicant;
 const onlyInterviewer = aController.onlyInterviewer;
+const checkTime = aController.checkTime;
+const checkSubmit = aController.checkSubmit;
 const files = require('../controller/fileUpload');
 const recruit = require('../controller/recruitmentInfo');
 const imageUpload = files.imageUpload;
@@ -26,15 +28,15 @@ module.exports = (router) => {
   // 지원서 관련 (지원자) - 본인 권한 필요
   router.route('/applicants/:applicantId/application')
         // 지원서 등록, 수정 (upsert)
-        .post(auth, onlyApplicant, applications.postApplication)
+        .post(auth, onlyApplicant, checkTime, applications.postApplication)
         // 지원서 보기 (수정시 본인 지원서 볼때)
         .get(auth, onlyApplicant, applications.getMyApplication)
         // 지원서 삭제 (본인 지원서 삭제 할 경우)
-        .delete(applications.removeApplication);
+        .delete(auth, onlyApplicant, checkTime, applications.removeApplication);
 
   // 지원서 제출 (확정)
   router.route('/applicants/:applicantId/application/submit')
-        .post(auth, onlyApplicant, applications.submitApplication);
+        .post(auth, onlyApplicant, checkTime, checkSubmit, applications.submitApplication);
 
   // 지원서 내부 업로드 (사진, 포폴)
   router.route('/applicants/:applicantId/application/picture')
