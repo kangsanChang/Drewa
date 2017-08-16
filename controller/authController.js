@@ -39,7 +39,7 @@ const createToken = async (userIdx, userEmail, userType) => {
 
 module.exports.createToken = createToken;
 
-module.exports.comparePassword = async (userEmail, userPassword) => {
+const comparePassword = async (userEmail, userPassword) => {
   /*
    * 비밀번호 비교해서 토큰 발급까지 함.
    * 중간에 에러나면 에러를 던진다.
@@ -72,6 +72,18 @@ module.exports.onlyApplicant = async (req, res, next) => {
       throw err;
     }
     next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports.postLogin = async (req, res, next) => {
+  try {
+    if (req.body.userEmail === undefined || req.body.userPassword === undefined) {
+      throw Error('Property exception');
+    }
+    const token = await comparePassword(req.body.userEmail, req.body.userPassword);
+    res.r(token);
   } catch (err) {
     next(err);
   }

@@ -2,19 +2,7 @@ const models = require('../models');
 const auth = require('./authController');
 const bcrypt = require('bcrypt');
 
-module.exports.postLogin = async (req, res, next) => {
-  try {
-    if (req.body.userEmail === undefined || req.body.userPassword === undefined) {
-      throw Error('Property exception');
-    }
-    const token = await auth.comparePassword(req.body.userEmail, req.body.userPassword);
-    res.r(token);
-  } catch (err) {
-    next(err);
-  }
-};
-
-module.exports.postSignUp = async (req, res, next) => {
+module.exports.applicantSignUp = async (req, res, next) => {
   // Transaction 준비
   const t = await models.sequelize.transaction();
   try {
@@ -52,11 +40,6 @@ module.exports.postSignUp = async (req, res, next) => {
       applicationDocument: applicationRet._id.toString(),
     };
     await models.applicationTb.create(newData, { transaction: t });
-    const ret = {
-      userIdx: result.userIdx,
-      userEmail: result.userEmail,
-      userSeason: result.userSeason,
-    };
     await t.commit();
     const token = await auth.createToken(result.userIdx, userEmail, 'applicant');
     res.r(token);
