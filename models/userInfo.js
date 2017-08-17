@@ -1,9 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
-  const usersTb = sequelize.define('userInfoTb',
+  const userInfoTb = sequelize.define('userInfoTb',
     {
-      userAuthIdx: {
+      userIdx: {
         type: DataTypes.INTEGER,
-        field: 'user_auth_idx',
+        field: 'user_idx',
         autoIncrement: true,
         primaryKey: true,
       },
@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       userName: {
         type: DataTypes.STRING,
         field: 'user_name',
-        allowNull: false,
+        allowNull: true,
       },
       userPassword: {
         type: DataTypes.STRING,
@@ -25,14 +25,26 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       userType: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM,
+        values: ['applicant', 'interviewer'],
         field: 'user_type',
         allowNull: false,
+        validate: {
+          isIn: [['applicant', 'interviewer']],
+        },
       },
       userPosition: {
         type: DataTypes.ENUM,
         values: ['designer', 'developer'],
         field: 'user_position',
+        allowNull: true,
+        validate: {
+          isIn: [['designer', 'developer']],
+        },
+      },
+      userSeason: {
+        type: DataTypes.INTEGER,
+        field: 'user_season',
         allowNull: false,
       },
     }, {
@@ -42,5 +54,5 @@ module.exports = (sequelize, DataTypes) => {
       comment: '전체 회원 테이블',
     },
   );
-  return usersTb;
+  return userInfoTb;
 };

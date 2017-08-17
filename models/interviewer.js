@@ -7,9 +7,10 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
       },
-      userAuthIdx: {
+      userIdx: {
         type: DataTypes.INTEGER,
-        field: 'user_auth_idx',
+        field: 'user_idx',
+        unique: true,
       },
     },
     {
@@ -21,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
   );
   interviewersTb.associate = (models) => {
     models.userInfoTb.hasOne(interviewersTb,
-      { foreignKey: 'userAuthIdx' });
+      { foreignKey: 'userIdx' });
   };
   return interviewersTb;
 };

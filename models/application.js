@@ -7,13 +7,18 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
       },
-      commIdx: {
+      applicantIdx: {
         type: DataTypes.INTEGER,
-        field: 'comm_idx',
+        field: 'applicant_idx',
       },
       applicationDocument: {
         type: DataTypes.STRING,
         field: 'application_document',
+      },
+      isSubmit: {
+        type: DataTypes.BOOLEAN,
+        field: 'is_submit',
+        defaultValue: false,
       },
     },
     {
@@ -24,8 +29,8 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
   applicationTb.associate = (models) => {
-    models.commInfoTb.hasOne(applicationTb,
-      { foreignKey: 'commIdx' });
+    models.applicantInfoTb.hasOne(applicationTb,
+      { foreignKey: 'applicantIdx' });
   };
   return applicationTb;
 };

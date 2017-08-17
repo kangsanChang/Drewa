@@ -2,61 +2,63 @@ const models = require('../models');
 const auth = require('./authController');
 const bcrypt = require('bcrypt');
 
-module.exports.postLogin = async (req, res, next) => {
+module.exports.applicantSignUp = async (req, res, next) => {
+  // Transaction 준비
+  const t = await models.sequelize.transaction();
   try {
+    // email, password 빈칸인지 검사
     if (req.body.userEmail === undefined || req.body.userPassword === undefined) {
       throw Error('Property exception');
     }
-    const token = await auth.comparePassword(req.body.userEmail, req.body.userPassword);
-    res.json({
-      token,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
+    // req.body 에서 가져옴 각각 user... 라는 변수명으로 저장함
+    const { userEmail, userPassword } = req.body;
+    // 이미 있는 email 인지 validation 해야 함
+    const check = await models.userInfoTb.find({ where: { userEmail } }); // userEmail : userEmail
 
-module.exports.postSignUp = async (req, res, next) => {
-  try {
-    if (req.body.userEmail === undefined || req.body.userPassword === undefined) {
-      throw Error('Property exception');
-    }
-    const { userEmail, userName, userType, userPassword } = req.body;
-    const where = {
-      userEmail,
-    };
-    // const data = req.body;
-    // const result = await models.userInfoTb.find({ where: { userEmail: data.userEmail } });
-
-    const t = await models.sequelize.transaction();
-    let result = await models.userInfoTb.find({
-      where,
-    });
-
-    console.log(result);
-    if (result !== null) {
-      await t.rollback();
+    // 이미 존재하는 email 일 경우
+    if (check !== null) {
       throw Error('User Already Exists');
     }
-    const newdata = {
+    let season = await models.recruitmentInfo.find()
+                             .sort('-createdAt')
+                             .limit(1)
+                             .select('season')
+                             .exec();
+    season = season[0].season;
+    let newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
-      userName,
-      userType,
+      userType: 'applicant',
+      userSeason: season,
+      userEmail,
     };
-    // console.log(where);
-    result = await models.userInfoTb.update({ newdata }, { where }, { transaction: t });
+    const result = await models.userInfoTb.create(newData, { transaction: t });
+    const applicantRet = await models.applicantInfoTb.create({ userIdx: result.userIdx },
+      { transaction: t });
+    const applicationRet = await models.applicationDoc.create({ userIdx: result.userIdx });
+    newData = {
+      applicantIdx: applicantRet.applicantIdx,
+      applicationDocument: applicationRet._id.toString(),
+    };
+    await models.applicationTb.create(newData, { transaction: t });
     await t.commit();
-    res.json(result);
+    const token = await auth.createToken(result.userIdx, userEmail, 'applicant');
+    // TODO: 헷갈림 DB에서도 쓰는 applicantIdx 자체로 로 이름 통일하도록 바꿔주면 좋을 듯
+    // TODO: 내부에선 userIdx고, 프론트에선 applicantIdx라 헷갈림
+    const resData = {
+      token,
+      applicantIdx: result.userIdx,
+    };
+    res.r(resData);
   } catch (err) {
+    await t.rollback();
     next(err);
   }
 };
 
-module.exports.tokenVerify = async (req, res, next) => {
+module.exports.getAllApplicant = async (req, res, next) => {
   try {
-    const result = await models.userInfoTb.findOne({ where: { userEmail: req.user.userEmail } });
-    // res.json(result);
-    res.r(result);
+    const allApplicants = await models.userInfoTb.findAll({ where: { userType: 'applicant' } });
+    res.r(allApplicants);
   } catch (err) {
     next(err);
   }
