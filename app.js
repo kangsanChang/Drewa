@@ -44,7 +44,9 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   res.status(err.status || 500);
   res.json({ msg: err.message, data: null });
-  console.log(err);
+  if (err.status !== 404) {
+    console.log(err);
+  }
 });
 
 module.exports = app;
