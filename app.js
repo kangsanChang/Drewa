@@ -12,7 +12,8 @@ logger.token('ktime', () => {
   return new Date().toLocaleString();
 });
 app.use(logger(
-  ':remote-addr - :remote-user [:ktime] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'));
+  ':remote-addr - :remote-user [:ktime] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
+  { skip: (req, res) => { return req.headers['user-agent'] === 'ELB-HealthChecker/2.0'; } }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
