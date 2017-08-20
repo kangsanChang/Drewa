@@ -11,8 +11,11 @@ const app = express();
 logger.token('ktime', () => {
   return new Date().toLocaleString();
 });
+logger.token('ip', (req) => {
+  return req.headers['x-forwarded-for'];
+});
 app.use(logger(
-  ':remote-addr - :remote-user [:ktime] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
+  ':ip > :remote-user [:ktime] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
   { skip: (req, res) => { return req.headers['user-agent'] === 'ELB-HealthChecker/2.0'; } }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
