@@ -73,10 +73,11 @@ module.exports.submitApplication = async (req, res, next) => {
     await updateApplication(req);
     await models.applicationTb.update({ isSubmit: true },
       { where: { applicantIdx: req.applicantIdx } });
-    // TODO : NODE_ENV 에 따라서 다르게 작동하는것 설정하기
-    // PRODUCTION 에서는 킬것!
-    // const results = await email.sendHello(req.user.userEmail);
-    const results = null;
+    // production 에서는 이메일을 보낸다
+    if (global.env === 'production') {
+      await email.sendHello(req.user.userEmail);
+    }
+    const results = req.user.userEmail;
     res.r(results);
   } catch (err) {
     next(err);

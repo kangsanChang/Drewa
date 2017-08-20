@@ -4,6 +4,7 @@ const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const passport = require('passport');
+global.env = process.env.NODE_ENV || 'development';
 
 const app = express();
 
@@ -44,7 +45,7 @@ app.use((req, res, next) => {
 app.use((err, req, res, next) => {
   res.status(err.status || 500);
   res.json({ msg: err.message, data: null });
-  if (err.status !== 404) {
+  if (global.env === 'development' && err.status !== 404) {
     console.log(err);
   }
 });
