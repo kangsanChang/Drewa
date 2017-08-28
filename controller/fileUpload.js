@@ -91,7 +91,7 @@ module.exports.uploadFile = async (req, res, next) => {
 
     if (fileType === 'images') {
       // applicantInfoTb 조회해서 존재하는 파일 명 있으면 S3에서 찾아서 삭제하기
-      await models.applicantInfoTb.findOne({ where: { userIdx: req.user.userIdx } })
+      await models.applicantInfoTb.findOne({ where: { applicantIdx: req.user.applicantIdx } })
                   .then((data) => {
                     const existFileName = data.dataValues.applicantPictureFilename;
                     if (existFileName !== null) {
@@ -102,14 +102,15 @@ module.exports.uploadFile = async (req, res, next) => {
                   });
       // 새로 저장할 file 이름으로 Update 시키기 (null 이어도 테이블 셀이 존재는 하므로 update)
       await models.applicantInfoTb.update({ applicantPictureFilename: file.originalname },
-        { where: { userIdx: req.user.userIdx } });
+        { where: { applicantIdx: req.user.applicantIdx } });
     } else if (fileType === 'portfolios') {
+      // TODO : MONGODB 모델 수정함. userIdx 대신 applicantIdx 가지도록
       const existObject = await models.applicationDoc.findOneAndUpdate(
-        { userIdx: req.user.userIdx },
+        { applicantIdx: req.user.applicantIdx },
         { portfolioFilename: file.originalname }, { ranValidators: true });
-      const existFileName = existObject.portfolioFilename;
-      if (existFileName !== null) {
+      if (existObject !== null) {
         // DB 안에 picture filename 있으면 삭제하기
+        const existFileName = existObject.portfolioFilename;
         const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
         clearToS3(removeKeyPath);
       }
@@ -130,7 +131,7 @@ module.exports.removePicture = async (req, res, next) => {
     const userEmail = req.user.userEmail;
     const fileType = 'images';
     const encoded = Buffer.from(userEmail).toString('base64');
-    await models.applicantInfoTb.findOne({ where: { userIdx: req.user.userIdx } })
+    await models.applicantInfoTb.findOne({ where: { applicantIdx: req.user.applicantIdx } })
                 .then((data) => {
                   const existFileName = data.dataValues.applicantPictureFilename;
                   if (existFileName !== null) {
@@ -140,7 +141,7 @@ module.exports.removePicture = async (req, res, next) => {
                 });
     // filename null 로 만들기
     await models.applicantInfoTb.update({ applicantPictureFilename: null },
-      { where: { userIdx: req.user.userIdx } });
+      { where: { applicantIdx: req.user.applicantIdx } });
     res.r('remove picture success!!');
   } catch (err) {
     next(err);
@@ -152,7 +153,7 @@ module.exports.removePortfolio = async (req, res, next) => {
     const userEmail = req.user.userEmail;
     const fileType = 'portfolios';
     const encoded = Buffer.from(userEmail).toString('base64');
-    await models.applicationDoc.findOne({ userIdx: req.user.userIdx }, (err, data) => {
+    await models.applicationDoc.findOne({ applicantIdx: req.user.applicantIdx }, (err, data) => {
       const existFileName = data.portfolioFilename;
       if (existFileName !== null) {
         const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
@@ -160,7 +161,7 @@ module.exports.removePortfolio = async (req, res, next) => {
       }
     });
     // filename null 로 만들기
-    await models.applicationDoc.findOneAndUpdate({ userIdx: req.user.userIdx },
+    await models.applicationDoc.findOneAndUpdate({ applicantIdx: req.user.applicantIdx },
       { portfolioFilename: null });
     res.r('remove portfolio success!!');
   } catch (err) {

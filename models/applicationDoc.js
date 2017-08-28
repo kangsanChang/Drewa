@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const applicationDocSchema = new mongoose.Schema(
   {
-    userIdx: {
+    applicantIdx: {
       type: Number,
       index: true,
       unique: true,
