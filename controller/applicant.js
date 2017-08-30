@@ -32,21 +32,22 @@ module.exports.applicantSignUp = async (req, res, next) => {
       userEmail,
     };
     const result = await models.userInfoTb.create(newData, { transaction: t });
-    const applicantRet = await models.applicantInfoTb.create({ userIdx: result.userIdx },
-      { transaction: t });
-    const applicationRet = await models.applicationDoc.create({ userIdx: result.userIdx });
+    const applicantRet = await models.applicantInfoTb.create(
+      { userIdx: result.userIdx }, { transaction: t });
+    const applicantIdx = applicantRet.applicantIdx;
+    const applicationRet = await models.applicationDoc.create(
+      { applicantIdx });
     newData = {
       applicantIdx: applicantRet.applicantIdx,
       applicationDocument: applicationRet._id.toString(),
     };
     await models.applicationTb.create(newData, { transaction: t });
     await t.commit();
-    const token = await auth.createToken(result.userIdx, userEmail, 'applicant');
-    // TODO: 헷갈림 DB에서도 쓰는 applicantIdx 자체로 로 이름 통일하도록 바꿔주면 좋을 듯
-    // TODO: 내부에선 userIdx고, 프론트에선 applicantIdx라 헷갈림
+    const token = await auth.createToken(applicantRet.applicantIdx, userEmail, 'applicant');
+    // TODO: applicantIdx 로 이름 통일
     const resData = {
       token,
-      applicantIdx: result.userIdx,
+      applicantIdx: applicantRet.applicantIdx,
     };
     res.r(resData);
   } catch (err) {

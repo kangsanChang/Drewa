@@ -26,12 +26,14 @@ module.exports.jwtPassport = () => {
   }));
 };
 
-const createToken = async (userIdx, userEmail, userType) => {
-  const payloads = {
-    userIdx,
-    userEmail,
-    userType,
-  };
+const createToken = async (index, userEmail, userType) => {
+  const payloads = { userEmail, userType };
+  if (userType === 'applicant') {
+    payloads.applicantIdx = index;
+  } else if (userType === 'interviewer') {
+    // TODO : 그냥 interveiwer 인덱스를 주는 건 어떨까?
+    payloads.userIdx = index;
+  }
   const token = await jwt.sign(payloads, config.auth.SECRET_KEY,
     { expiresIn: config.auth.EXPIRES });
   return token;
@@ -39,28 +41,28 @@ const createToken = async (userIdx, userEmail, userType) => {
 
 module.exports.createToken = createToken;
 
-// Todo : 토큰과 applicantIdx(DB의 userIdx)를 합쳐서 만든 data를 리턴. 이름을 applicantIdx로 통일하면 좋겠다
+// TODO : MEMO : boolean으로 주는건 어떄
 const comparePassword = async (userEmail, userPassword) => {
-  /*
-   * 비밀번호 비교해서 토큰 발급까지 함.
-   * 중간에 에러나면 에러를 던진다.
-   */
+  // 비밀번호 비교 후 token 발급
   try {
     const result = await models.userInfoTb.findOne({ where: { userEmail } });
-    if (!result) {
-      throw new Error('Email not exist');
-    }
+    if (!result) { throw new Error('Email not exist'); }
     // Password Matching
     const isMatch = await bcrypt.compare(userPassword, result.userPassword);
-    if (!isMatch) {
-      throw new Error('Password Not match');
+    if (!isMatch) { throw new Error('Password Not match'); }
+    // response 를 index 와 함꼐 줌
+    if (result.userType === 'applicant') {
+      const userIdx = result.userIdx;
+      const userApplicantInfo = await models.applicantInfoTb.findOne({ where: { userIdx } });
+      const applicantIdx = userApplicantInfo.applicantIdx;
+      const token = await createToken(applicantIdx, result.userEmail, result.userType);
+      return { token, applicantIdx };
+    } else if (result.userType === 'interviewer') {
+      // TODO : 그냥 interveiwer 인덱스를 주는 건 어떨까?
+      const token = await createToken(result.userIdx, result.userEmail, result.userType);
+      const userIdx = result.userIdx;
+      return { token, userIdx };
     }
-    const token = await createToken(result.userIdx, result.userEmail, result.userType);
-    const data = {
-      token,
-      applicantIdx: result.userIdx,
-    };
-    return data;
   } catch (err) {
     throw err;
   }
@@ -72,7 +74,7 @@ module.exports.onlyApplicant = async (req, res, next) => {
     // userType 이 'applicant' 인 요청만 유효함
     // 본인의 applications 에 대해서만 유효함
     if (req.user.userType !== 'applicant' ||
-      req.user.userIdx !== Number(req.params.applicantId)) {
+      req.user.applicantIdx !== Number(req.params.applicantIdx)) {
       err = new Error('Permission denied');
       err.status = 403;
       throw err;
@@ -140,25 +142,17 @@ module.exports.checkTime = async (req, res, next) => {
   }
 };
 
-
 module.exports.checkSubmit = async (req, res, next) => {
   try {
-    const result = await models.applicantInfoTb.findOne({
-      include: [
-        {
-          model: models.applicationTb,
-          // attributes: ['applicantIdx', 'isSubmit'],
-        }],
-      where: {
-        userIdx: req.user.userIdx,
-      },
+    const result = await models.applicationTb.findOne({
+      where: { applicantIdx: req.user.applicantIdx },
     });
-    if (result.applicationTb.isSubmit) {
+    if (result.isSubmit) {
       const err = new Error('이미 제출하셨습니다!');
       err.status = 400;
       throw err;
     }
-    req.applicantIdx = result.applicationTb.applicantIdx;
+    req.applicantIdx = result.applicantIdx;
     next();
   } catch (err) {
     next(err);

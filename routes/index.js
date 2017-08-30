@@ -26,7 +26,7 @@ module.exports = (router) => {
         .get(applicant.getAllApplicant);
 
   // 지원서 관련 (지원자) - 본인 권한 필요
-  router.route('/applicants/:applicantId/application')
+  router.route('/applicants/:applicantIdx/application')
         // 지원서 등록, 수정 (upsert)
         .post(auth, onlyApplicant, checkTime, applications.postApplication)
         // 지원서 보기 (수정시 본인 지원서 볼때)
@@ -35,16 +35,16 @@ module.exports = (router) => {
         .delete(auth, onlyApplicant, checkTime, applications.removeApplication);
 
   // 지원서 제출 (확정)
-  router.route('/applicants/:applicantId/application/submit')
+  router.route('/applicants/:applicantIdx/application/submit')
         .post(auth, onlyApplicant, checkTime, checkSubmit, applications.submitApplication);
 
   // 지원서 내부 업로드 (사진, 포폴)
-  router.route('/applicants/:applicantId/application/picture')
+  router.route('/applicants/:applicantIdx/application/picture')
         // 사진 등록 <input name='user_image'> 기준
         .post(auth, onlyApplicant, imageUpload.single('user_image'), files.uploadFile)
         // 사진 삭제
         .delete(auth, onlyApplicant, files.removePicture);
-  router.route('/applicants/:applicantId/application/portfolio')
+  router.route('/applicants/:applicantIdx/application/portfolio')
         // 포트폴리오 등록 <input name='user_portfolio'> 기준
         .post(auth, onlyApplicant, portfolioUpload.single('user_portfolio'), files.uploadFile)
         // 포트폴리오 삭제
@@ -54,7 +54,7 @@ module.exports = (router) => {
   router.route('/applications')
         // 지원서 모두 가져오기 (목록)
         .get(applications.getApplications);
-  router.route('/applications/:applicantId')
+  router.route('/applications/:applicantIdx')
         // 특정 지원서 평가 테이블 불러오기
         .get()
         // 특정 지원서 평가한것 보내기
