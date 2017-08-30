@@ -14,9 +14,13 @@ logger.token('ktime', () => {
 logger.token('ip', (req) => {
   return req.headers['x-forwarded-for'];
 });
-app.use(logger(
-  ':ip > :remote-user [:ktime] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-  { skip: (req, res) => { return req.headers['user-agent'] === 'ELB-HealthChecker/2.0'; } }));
+
+if (process.env.NODE_ENV !== 'test') {
+  app.use(logger(
+    ':ip > :remote-user [:ktime] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
+    { skip: (req, res) => { return req.headers['user-agent'] === 'ELB-HealthChecker/2.0'; } }));
+}
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());

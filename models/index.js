@@ -4,7 +4,10 @@ const Sequelize = require('sequelize');
 const basename = path.basename(module.filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require('../config/config.json')[env];
-const mongoConfig = require('../config/config.json').mongodb;
+// Split into two environments. test/development(default)
+const mongoConfig = env === 'test'
+  ? require('../config/config.json').mongodb_test
+  : require('../config/config.json').mongodb_dev;
 const mongoose = require('mongoose');
 const db = {};
 const sequelize = config.use_env_variable
