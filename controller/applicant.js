@@ -6,19 +6,14 @@ module.exports.applicantSignUp = async (req, res, next) => {
   // Transaction 준비
   const t = await models.sequelize.transaction();
   try {
-    // email, password 빈칸인지 검사
-    if (req.body.userEmail === undefined || req.body.userPassword === undefined) {
-      throw Error('Property exception');
-    }
-    // req.body 에서 가져옴 각각 user... 라는 변수명으로 저장함
+    // email, password 빈칸 검사
+    if (!req.body.userEmail || !req.body.userPassword) { throw Error('There is empty field'); }
     const { userEmail, userPassword } = req.body;
-    // 이미 있는 email 인지 validation 해야 함
-    const check = await models.userInfoTb.find({ where: { userEmail } }); // userEmail : userEmail
 
-    // 이미 존재하는 email 일 경우
-    if (check !== null) {
-      throw Error('User Already Exists');
-    }
+    // Email Validation
+    const check = await models.userInfoTb.find({ where: { userEmail } });
+    if (check !== null) { throw Error('User Already Exists'); }
+
     let season = await models.recruitmentInfo.find()
                              .sort('-createdAt')
                              .limit(1)
@@ -35,8 +30,7 @@ module.exports.applicantSignUp = async (req, res, next) => {
     const applicantRet = await models.applicantInfoTb.create(
       { userIdx: result.userIdx }, { transaction: t });
     const applicantIdx = applicantRet.applicantIdx;
-    const applicationRet = await models.applicationDoc.create(
-      { applicantIdx });
+    const applicationRet = await models.applicationDoc.create({ applicantIdx });
     newData = {
       applicantIdx: applicantRet.applicantIdx,
       applicationDocument: applicationRet._id.toString(),
@@ -44,7 +38,6 @@ module.exports.applicantSignUp = async (req, res, next) => {
     await models.applicationTb.create(newData, { transaction: t });
     await t.commit();
     const token = await auth.createToken(applicantRet.applicantIdx, userEmail, 'applicant');
-    // TODO: applicantIdx 로 이름 통일
     const resData = {
       token,
       applicantIdx: applicantRet.applicantIdx,
@@ -52,6 +45,7 @@ module.exports.applicantSignUp = async (req, res, next) => {
     res.r(resData);
   } catch (err) {
     await t.rollback();
+    err.status = 400;
     next(err);
   }
 };
