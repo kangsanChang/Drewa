@@ -46,10 +46,18 @@ const comparePassword = async (userEmail, userPassword) => {
   // 비밀번호 비교 후 token 발급
   try {
     const result = await models.userInfoTb.findOne({ where: { userEmail } });
-    if (!result) { throw new Error('Email not exist'); }
+    if (!result) {
+      const err = new Error('Email not exist');
+      err.status = 400;
+      throw err;
+    }
     // Password Matching
     const isMatch = await bcrypt.compare(userPassword, result.userPassword);
-    if (!isMatch) { throw new Error('Password Not match'); }
+    if (!isMatch) {
+      const err = new Error('Password not match');
+      err.status = 400;
+      throw err;
+    }
     // response 를 index 와 함꼐 줌
     if (result.userType === 'applicant') {
       const userIdx = result.userIdx;
@@ -103,8 +111,10 @@ module.exports.onlyInterviewer = async (req, res, next) => {
 
 module.exports.postLogin = async (req, res, next) => {
   try {
-    if (req.body.userEmail === undefined || req.body.userPassword === undefined) {
-      throw Error('Property exception');
+    if (!req.body.userEmail || !req.body.userPassword) {
+      const err = new Error('Property exception');
+      err.status = 400;
+      throw(err);
     }
     const data = await comparePassword(req.body.userEmail, req.body.userPassword);
     res.r(data);

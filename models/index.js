@@ -64,7 +64,9 @@ mongoose.connect(mongoConfig.url, {
   useMongoClient: true,
 });
 mongoose.connection.once('open', () => {
-  console.log('Mongoose on!');
+  if (process.env.NODE_ENV !== 'test') {
+    console.log('Mongoose on!');
+  }
 });
 
 module.exports = db;

@@ -121,15 +121,21 @@ module.exports.getMyApplication = async (req, res, next) => {
   }
 };
 
+const remover = async (applicantIdx) => {
+  const result = [];
+  const data = await models.applicantInfoTb.findOne({ where: { applicantIdx } });
+  result.push(await models.applicantInfoTb.destroy({ where: { applicantIdx } }));
+  result.push(await models.userInfoTb.destroy({ where: { userIdx: data.dataValues.userIdx } })); // TODO: user Info 도 파괴할 필요가?
+  result.push(await models.applicationDoc.remove({ applicantIdx }));
+  result.push(await models.applicationTb.destroy({ where: { applicantIdx } }));
+  return result;
+};
+module.exports.remover = remover;
+
 module.exports.removeApplication = async (req, res, next) => {
   try {
     const applicantIdx = req.params.applicantIdx;
-    const result = [];
-    const data = await models.applicantInfoTb.findOne({ where: { applicantIdx } });
-    result.push(await models.applicantInfoTb.destroy({ where: { applicantIdx } }));
-    result.push(await models.userInfoTb.destroy({ where: { userIdx: data.dataValues.userIdx } }));
-    result.push(await models.applicationDoc.remove({ applicantIdx }));
-    result.push(await models.applicationTb.destroy({ where: { applicantIdx } }));
+    const result = remover(applicantIdx);
     res.r(result);
   } catch (err) {
     next(err);
