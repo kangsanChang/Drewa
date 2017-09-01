@@ -112,7 +112,7 @@ module.exports.onlyInterviewer = async (req, res, next) => {
 module.exports.postLogin = async (req, res, next) => {
   try {
     if (!req.body.userEmail || !req.body.userPassword) {
-      const err = new Error('Property exception');
+      const err = new Error('There is an empty field');
       err.status = 400;
       throw(err);
     }

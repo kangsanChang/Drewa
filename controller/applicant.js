@@ -7,12 +7,20 @@ module.exports.applicantSignUp = async (req, res, next) => {
   const t = await models.sequelize.transaction();
   try {
     // email, password 빈칸 검사
-    if (!req.body.userEmail || !req.body.userPassword) { throw Error('There is empty field'); }
+    if (!req.body.userEmail || !req.body.userPassword) {
+      const err = new Error('There is an empty field');
+      err.status = 400;
+      throw err;
+    }
     const { userEmail, userPassword } = req.body;
 
     // Email Validation
     const check = await models.userInfoTb.find({ where: { userEmail } });
-    if (check !== null) { throw Error('User Already Exists'); }
+    if (check !== null) {
+      const err = new Error('User Already Exists');
+      err.status = 400;
+      throw err;
+    }
 
     let season = await models.recruitmentInfo.find()
                              .sort('-createdAt')
@@ -44,8 +52,10 @@ module.exports.applicantSignUp = async (req, res, next) => {
     };
     res.r(resData);
   } catch (err) {
+    if (err.name === 'SequelizeValidationError') {
+      err.status = 400;
+    }
     await t.rollback();
-    err.status = 400;
     next(err);
   }
 };
