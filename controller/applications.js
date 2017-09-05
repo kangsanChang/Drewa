@@ -1,5 +1,6 @@
 const models = require('../models');
 const email = require('./Email');
+const removeFile = require('./fileUpload').removeFile;
 
 module.exports.getApplications = async (req, res, next) => {
   try {
@@ -113,6 +114,7 @@ module.exports.getMyApplication = async (req, res, next) => {
       userPersonalUrl: applicationDocRet.personalUrl,
       userAnswers: applicationDocRet.answers,
       userInterviewAvailableTime: applicationDocRet.interviewAvailableTime,
+      // TODO : picture, portfolio 있으면, url 가져와야지 사진 보여줄 수 있을 듯.
     };
 
     res.r(result);
@@ -121,11 +123,14 @@ module.exports.getMyApplication = async (req, res, next) => {
   }
 };
 
-const remover = async (applicantIdx) => {
+const remover = async (applicantIdx, userEmail) => {
+  // TODO: 지원 포기면 user Info 도 파괴 / 지원서 자체만 포기면 userInfo 는 살리기
   const result = [];
   const data = await models.applicantInfoTb.findOne({ where: { applicantIdx } });
+  result.push(await removeFile(applicantIdx, userEmail, 'images'));
+  result.push(await removeFile(applicantIdx, userEmail, 'portfolios'));
   result.push(await models.applicantInfoTb.destroy({ where: { applicantIdx } }));
-  result.push(await models.userInfoTb.destroy({ where: { userIdx: data.dataValues.userIdx } })); // TODO: user Info 도 파괴할 필요가?
+  result.push(await models.userInfoTb.destroy({ where: { userIdx: data.dataValues.userIdx } }));
   result.push(await models.applicationDoc.remove({ applicantIdx }));
   result.push(await models.applicationTb.destroy({ where: { applicantIdx } }));
   return result;
@@ -135,7 +140,8 @@ module.exports.remover = remover;
 module.exports.removeApplication = async (req, res, next) => {
   try {
     const applicantIdx = req.params.applicantIdx;
-    const result = remover(applicantIdx);
+    const userEmail = req.user.userEmail;
+    const result = remover(applicantIdx, userEmail);
     res.r(result);
   } catch (err) {
     next(err);
