@@ -51,6 +51,10 @@ app.use((req, res, next) => {
 
 // error handler
 app.use((err, req, res, next) => {
+  // multer 모듈에서 파일 사이즈 오류 던진 경우.
+  // parameter 로 받아온 변수에 assign 하면 에러 뜸 (no-param-reassign)
+  if (err.code === 'LIMIT_FILE_SIZE') err.status = 400;
+
   res.status(err.status || 500);
   res.json({ msg: err.message, data: null });
   if (global.env === 'development' && err.status !== 404) {
