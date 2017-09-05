@@ -41,7 +41,7 @@ const createToken = async (index, userEmail, userType) => {
 
 module.exports.createToken = createToken;
 
-// TODO : MEMO : boolean으로 주는건 어떄
+// TODO : boolean으로 주는건 어떄
 const comparePassword = async (userEmail, userPassword) => {
   // 비밀번호 비교 후 token 발급
   try {
@@ -66,7 +66,7 @@ const comparePassword = async (userEmail, userPassword) => {
       const token = await createToken(applicantIdx, result.userEmail, result.userType);
       return { token, applicantIdx };
     } else if (result.userType === 'interviewer') {
-      // TODO : 그냥 interveiwer 인덱스를 주는 건 어떨까?
+      // TODO : 그냥 interviewer 인덱스를 주는 건 어떨까?
       const token = await createToken(result.userIdx, result.userEmail, result.userType);
       const userIdx = result.userIdx;
       return { token, userIdx };
@@ -169,4 +169,5 @@ module.exports.checkSubmit = async (req, res, next) => {
   }
 };
 
+// TODO: custom callback 으로 401 및 인증 실패 시 직접 handling 하고 싶음.
 module.exports.authenticate = passport.authenticate('jwt', { session: false });
