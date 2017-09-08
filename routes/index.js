@@ -28,11 +28,11 @@ module.exports = (router) => {
   // 지원서 관련 (지원자) - 본인 권한 필요
   router.route('/applicants/:applicantIdx/application')
         // 지원서 등록, 수정 (upsert)
-        .post(auth, onlyApplicant, checkTime, applications.postApplication)
+        .post(auth, onlyApplicant, checkTime, checkSubmit, applications.postApplication)
         // 지원서 보기 (수정시 본인 지원서 볼때)
         .get(auth, onlyApplicant, applications.getMyApplication)
         // 지원서 삭제 (본인 지원서 삭제 할 경우)
-        .delete(auth, onlyApplicant, checkTime, applications.removeApplication);
+        .delete(auth, onlyApplicant, checkTime, checkSubmit, applications.removeApplication);
 
   // 지원서 제출 (확정)
   router.route('/applicants/:applicantIdx/application/submit')
@@ -41,14 +41,14 @@ module.exports = (router) => {
   // 지원서 내부 업로드 (사진, 포폴)
   router.route('/applicants/:applicantIdx/application/picture')
         // 사진 등록 <input name='user_image'> 기준
-        .post(auth, onlyApplicant, imageUpload.single('user_image'), files.uploadFile)
+        .post(auth, onlyApplicant, checkSubmit, imageUpload.single('user_image'), files.uploadFile)
         // 사진 삭제
-        .delete(auth, onlyApplicant, files.removePicture);
+        .delete(auth, onlyApplicant, checkSubmit, files.removePicture);
   router.route('/applicants/:applicantIdx/application/portfolio')
         // 포트폴리오 등록 <input name='user_portfolio'> 기준
-        .post(auth, onlyApplicant, portfolioUpload.single('user_portfolio'), files.uploadFile)
+        .post(auth, onlyApplicant, checkSubmit, portfolioUpload.single('user_portfolio'), files.uploadFile)
         // 포트폴리오 삭제
-        .delete(auth, onlyApplicant, files.removePortfolio);
+        .delete(auth, onlyApplicant, checkSubmit, files.removePortfolio);
 
   // 지원서 관련 (면접관) - 면접관 권한 필요
   router.route('/applications')

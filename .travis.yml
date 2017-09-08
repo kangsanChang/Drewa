@@ -1,0 +1,6 @@
+language: node_js
+node_js:
+- stable
+before_install:
+- openssl aes-256-cbc -K $encrypted_9cd168a1ebfa_key -iv $encrypted_9cd168a1ebfa_iv
+  -in ./config/config.json.enc -out ./config/config.json -d

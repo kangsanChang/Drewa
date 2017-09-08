@@ -41,15 +41,23 @@ const createToken = async (index, userEmail, userType) => {
 
 module.exports.createToken = createToken;
 
-// TODO : MEMO : boolean으로 주는건 어떄
+// TODO : boolean으로 주는건 어떄
 const comparePassword = async (userEmail, userPassword) => {
   // 비밀번호 비교 후 token 발급
   try {
     const result = await models.userInfoTb.findOne({ where: { userEmail } });
-    if (!result) { throw new Error('Email not exist'); }
+    if (!result) {
+      const err = new Error('Email not exist');
+      err.status = 400;
+      throw err;
+    }
     // Password Matching
     const isMatch = await bcrypt.compare(userPassword, result.userPassword);
-    if (!isMatch) { throw new Error('Password Not match'); }
+    if (!isMatch) {
+      const err = new Error('Password not match');
+      err.status = 400;
+      throw err;
+    }
     // response 를 index 와 함꼐 줌
     if (result.userType === 'applicant') {
       const userIdx = result.userIdx;
@@ -58,7 +66,7 @@ const comparePassword = async (userEmail, userPassword) => {
       const token = await createToken(applicantIdx, result.userEmail, result.userType);
       return { token, applicantIdx };
     } else if (result.userType === 'interviewer') {
-      // TODO : 그냥 interveiwer 인덱스를 주는 건 어떨까?
+      // TODO : 그냥 interviewer 인덱스를 주는 건 어떨까?
       const token = await createToken(result.userIdx, result.userEmail, result.userType);
       const userIdx = result.userIdx;
       return { token, userIdx };
@@ -103,8 +111,10 @@ module.exports.onlyInterviewer = async (req, res, next) => {
 
 module.exports.postLogin = async (req, res, next) => {
   try {
-    if (req.body.userEmail === undefined || req.body.userPassword === undefined) {
-      throw Error('Property exception');
+    if (!req.body.userEmail || !req.body.userPassword) {
+      const err = new Error('There is an empty field');
+      err.status = 400;
+      throw(err);
     }
     const data = await comparePassword(req.body.userEmail, req.body.userPassword);
     res.r(data);
@@ -159,4 +169,5 @@ module.exports.checkSubmit = async (req, res, next) => {
   }
 };
 
+// TODO: custom callback 으로 401 및 인증 실패 시 직접 handling 하고 싶음.
 module.exports.authenticate = passport.authenticate('jwt', { session: false });
