@@ -1,6 +1,9 @@
 const models = require('../models');
 const email = require('./Email');
 const removeFile = require('./fileUpload').removeFile;
+const getFileName = require('./fileUpload').getFileName;
+const getKeyPath = require('./fileUpload').getKeyPath;
+const getFileUrl = require('./fileUpload').getFileUrl;
 
 module.exports.getApplications = async (req, res, next) => {
   try {
@@ -41,15 +44,13 @@ const updateApplication = async (req) => {
       interviewAvailableTime: data.interviewAvailableTime,
     };
     // DB에 넣어주기
-    const userInfoResult = await models.userInfoTb.update({ userName, userPosition },
+    await models.userInfoTb.update({ userName, userPosition },
       { where: { userIdx }, transaction: t });
-    const applicantInfoResult = await models.applicantInfoTb.update(applicantData,
+    await models.applicantInfoTb.update(applicantData,
       { where: { applicantIdx }, transaction: t });
-    const appDocResult = await models.applicationDoc.findOneAndUpdate(
-      { applicantIdx }, appDocData, { runValidators: true });
+    await models.applicationDoc.findOneAndUpdate(
+      { applicantIdx }, appDocData);
     await t.commit();
-    // 결과값 응답
-    return [userInfoResult, applicantInfoResult, appDocResult];
   } catch (err) {
     t.rollback();
     throw (err);
@@ -71,7 +72,7 @@ module.exports.submitApplication = async (req, res, next) => {
   try {
     await updateApplication(req);
     await models.applicationTb.update({ isSubmit: true },
-      { where: { applicantIdx: req.applicantIdx } });
+      { where: { applicantIdx: req.user.applicantIdx } });
     // production 에서는 이메일을 보낸다
     if (global.env === 'production') {
       await email.sendHello(req.user.userEmail);
@@ -93,6 +94,7 @@ module.exports.getMyApplication = async (req, res, next) => {
     const userIdx = applicantInfoRet.userIdx;
     const userInfo = await models.userInfoTb.findOne({ where: { userIdx } });
     const userInfoRet = userInfo.dataValues;
+
     const result = {
       // From UserInfo
       userName: userInfoRet.userName,
@@ -111,27 +113,51 @@ module.exports.getMyApplication = async (req, res, next) => {
       personalUrl: applicationDocRet.personalUrl,
       answers: applicationDocRet.answers,
       interviewAvailableTime: applicationDocRet.interviewAvailableTime,
-      // TODO : picture, portfolio 있으면, url 가져와야지 사진 보여줄 수 있을 듯.
-      // TODO : applicantGrade 쓸지 여부 정하기.
+      // From FileUrl
+      applicantImageUrl: null,
+      applicantPortfolioUrl: null,
     };
 
+    // Get File URL
+    const imageFileName = await getFileName('images', applicantIdx);
+    const portfolioFileName = await getFileName('portfolios', applicantIdx);
+
+    if (imageFileName) {
+      const imageKeyPath = getKeyPath(userInfoRet.userEmail, 'images', imageFileName);
+      const imageUrl = getFileUrl(imageKeyPath);
+      result.applicantImageUrl = imageUrl;
+    }
+    if (portfolioFileName) {
+      const portfolioKeyPath = getKeyPath(userInfoRet.userEmail, 'portfolios', portfolioFileName);
+      const portfolioUrl = getFileUrl(portfolioKeyPath);
+      result.applicantPortfolioUrl = portfolioUrl;
+    }
     res.r(result);
   } catch (err) {
     next(err);
   }
 };
 
+// 지원자 + 지원서 모두 삭제
 const remover = async (applicantIdx, userEmail) => {
-  // TODO: 지원 포기면 user Info 도 파괴 / 지원서 자체만 포기면 userInfo 는 살리기
-  const result = [];
+  const t = await models.sequelize.transaction();
   const data = await models.applicantInfoTb.findOne({ where: { applicantIdx } });
-  result.push(await removeFile(applicantIdx, userEmail, 'images'));
-  result.push(await removeFile(applicantIdx, userEmail, 'portfolios'));
-  result.push(await models.applicantInfoTb.destroy({ where: { applicantIdx } }));
-  result.push(await models.userInfoTb.destroy({ where: { userIdx: data.dataValues.userIdx } }));
-  result.push(await models.applicationDoc.remove({ applicantIdx }));
-  result.push(await models.applicationTb.destroy({ where: { applicantIdx } }));
-  return result;
+  // 파일 있는지 확인
+  const imageFileName = await getFileName('images', applicantIdx);
+  const portfolioFileName = await getFileName('portfolios', applicantIdx);
+  if (imageFileName) {
+    await removeFile(applicantIdx, userEmail, 'images');
+  }
+  if (portfolioFileName) {
+    await removeFile(applicantIdx, userEmail, 'portfolios');
+  }
+
+  await models.applicantInfoTb.destroy({ where: { applicantIdx }, transaction: t });
+  await models.userInfoTb.destroy(
+    { where: { userIdx: data.dataValues.userIdx }, transaction: t });
+  await models.applicationTb.destroy({ where: { applicantIdx }, transaction: t });
+  await models.applicationDoc.remove({ applicantIdx });
+  await t.commit();
 };
 module.exports.remover = remover;
 
