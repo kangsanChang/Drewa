@@ -649,13 +649,14 @@ describe('Test for REST API', function() {
           });
       });
       // - 지원서 내부 사진 수정 삭제 불가
-      it('should return Error object when removing picture in an already submitted application',
+      it('should return Error object when update picture in an already submitted application',
         (done) => {
           request(app)
             .post(`/api/applicants/${initApplicantIdx}/application/picture`)
             .set('token', initApplicantToken)
             .attach('user_image', `${__dirname}/../test_files/cat.png`)
             .end((err, res) => {
+              if (err) { console.log(err); } // Sometimes 'write EPIPE' Error occur
               const body = res.body;
               expect(res.status).to.be.equal(400);
               expect(body).to.be.an('object');
@@ -663,7 +664,7 @@ describe('Test for REST API', function() {
               done();
             });
         });
-      it('should return Error object when updating picture in an already submitted application',
+      it('should return Error object when remove picture in an already submitted application',
         (done) => {
           request(app)
             .delete(`/api/applicants/${initApplicantIdx}/application/picture`)
@@ -677,7 +678,7 @@ describe('Test for REST API', function() {
             });
         });
       // - 지원서 내부 포폴 수정 삭제 불가
-      it('should return Error object when removing portfolio in an already submitted application',
+      it('should return Error object when update portfolio in an already submitted application',
         (done) => {
           request(app)
             .post(`/api/applicants/${initApplicantIdx}/application/portfolio`)
@@ -691,7 +692,7 @@ describe('Test for REST API', function() {
               done();
             });
         });
-      it('should return Error object when updating portfolio in an already submitted application',
+      it('should return Error object when remove portfolio in an already submitted application',
         (done) => {
           request(app)
             .delete(`/api/applicants/${initApplicantIdx}/application/portfolio`)
