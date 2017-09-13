@@ -31,7 +31,6 @@ const imageFilter = (req, file, cb) => {
   err.status = 400;
   return cb(err, false);
 };
-
 const portfolioFilter = (req, file, cb) => {
   if (file.fieldname !== 'user_portfolio') {
     const err = new Error('wrong field name');
@@ -64,11 +63,10 @@ const clearToS3 = removeKeyPath => new Promise(async (resolve, reject) => {
   await s3.deleteObject(params, (err) => { if (err) { reject(err); } });
 });
 
-const saveToS3 = (file, keyName) => new Promise(async (resolve, reject) => {
-  const s3path = (file.fieldname === 'user_image') ? 'images/' : 'portfolios/';
+const saveToS3 = (file, keyPath) => new Promise(async (resolve, reject) => {
   const params = {
     Bucket: config.S3.bucketName,
-    Key: s3path + keyName,
+    Key: keyPath,
     ACL: 'public-read',
     ContentType: file.mimetype,
   };
@@ -81,6 +79,29 @@ const saveToS3 = (file, keyName) => new Promise(async (resolve, reject) => {
              });
 });
 
+const getFileName = async (fileType, applicantIdx) => {
+  let filename;
+  if (fileType === 'images') {
+    const obj = await models.applicantInfoTb.findOne({ where: { applicantIdx } });
+    filename = obj.applicantPictureFilename;
+  } else if (fileType === 'portfolios') {
+    const obj = await models.applicationDoc.findOne({ applicantIdx }).exec();
+    filename = obj.portfolioFilename;
+  }
+  return filename;
+};
+module.exports.getFileName = getFileName;
+
+const getKeyPath = (userEmail, fileType, fileName) => {
+  const encoded = Buffer.from(userEmail).toString('base64');
+  return `${fileType}/${encoded}${fileName}`;
+};
+module.exports.getKeyPath = getKeyPath;
+
+module.exports.getFileUrl = (keyPath) => {
+  return `https://s3.${config.S3.region}.amazonaws.com/${config.S3.bucketName}/${keyPath}`;
+};
+
 module.exports.uploadFile = async (req, res, next) => {
   try {
     if (!req.file) {
@@ -89,78 +110,65 @@ module.exports.uploadFile = async (req, res, next) => {
       throw err;
     }
     const file = req.file;
-    const userEmail = req.user.userEmail;
     const fileType = (file.fieldname === 'user_image') ? 'images' : 'portfolios';
-    const encoded = Buffer.from(userEmail).toString('base64');
-    const keyName = encoded + file.originalname;
 
+    // 기존에 업로드 한 파일이 있으면 삭제하기 (파일 이름이 다르면 덮어쓰기 안되고 생성되므로)
+    const existFileName = await getFileName(fileType, req.user.applicantIdx);
+    if (existFileName) {
+      const keyPath = getKeyPath(req.user.userEmail, fileType, existFileName);
+      clearToS3(keyPath);
+    }
+
+    // 파일 명 업데이트 (없었다면 null 을 update)
     if (fileType === 'images') {
-      // applicantInfoTb 조회해서 존재하는 파일 명 있으면 S3에서 찾아서 삭제하기
-      await models.applicantInfoTb.findOne({ where: { applicantIdx: req.user.applicantIdx } })
-                  .then((data) => {
-                    const existFileName = data.dataValues.applicantPictureFilename;
-                    if (existFileName !== null) {
-                      // DB 안에 picture filename 있으면 삭제하기
-                      const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
-                      clearToS3(removeKeyPath);
-                    }
-                  });
-      // 새로 저장할 file 이름으로 Update 시키기 (null 이어도 테이블 셀이 존재는 하므로 update)
       await models.applicantInfoTb.update({ applicantPictureFilename: file.originalname },
         { where: { applicantIdx: req.user.applicantIdx } });
     } else if (fileType === 'portfolios') {
-      const existObject = await models.applicationDoc.findOneAndUpdate(
-        { applicantIdx: req.user.applicantIdx },
-        { portfolioFilename: file.originalname }, { ranValidators: true });
-      if (existObject !== null) {
-        // DB 안에 picture filename 있으면 삭제하기
-        const existFileName = existObject.portfolioFilename;
-        const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
-        clearToS3(removeKeyPath);
-      }
+      await models.applicationDoc.findOneAndUpdate({ applicantIdx: req.user.applicantIdx },
+        { portfolioFilename: file.originalname });
     }
-    const s3Url = await saveToS3(file, keyName);
-    const result = {
-      url: s3Url,
-      fileName: file.originalname,
-    };
+
+    // 파일 업로드
+    const keyPath = getKeyPath(req.user.userEmail, fileType, file.originalname);
+    const s3Url = await saveToS3(file, keyPath);
+    const result = { url: s3Url, fileName: file.originalname };
     res.r(result);
   } catch (err) {
-    // file 이 없을때 보내는 에러
     next(err);
   }
 };
 
 const removeFile = async (applicantIdx, userEmail, fileType) => {
-  const encoded = Buffer.from(userEmail).toString('base64');
+  let keyPath;
   if (fileType === 'images') {
     const data = await models.applicantInfoTb.findOne({ where: { applicantIdx } });
     if (data.applicantPictureFilename) {
-      const existFileName = data.applicantPictureFilename;
-      const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
-      clearToS3(removeKeyPath);
+      keyPath = getKeyPath(userEmail, fileType, data.applicantPictureFilename);
+      clearToS3(keyPath);
     } else {
-      return false;
+      // 파일이 없는 데 삭제하려고 하는 경우
+      const err = new Error('Can not find file');
+      err.status = 400;
+      throw err;
     }
     // filename null 로 만들기
     await models.applicantInfoTb.update({ applicantPictureFilename: null },
       { where: { applicantIdx } });
-    return true;
   } else if (fileType === 'portfolios') {
     const data = await models.applicationDoc.findOne({ applicantIdx }).exec();
     if (data.portfolioFilename) {
-      const existFileName = data.portfolioFilename;
-      const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
-      clearToS3(removeKeyPath);
+      keyPath = getKeyPath(userEmail, fileType, data.portfolioFilename);
+      clearToS3(keyPath);
     } else {
-      return false;
+      // 파일이 없는 데 삭제하려고 하는 경우
+      const err = new Error('Can not find file');
+      err.status = 400;
+      throw err;
     }
     // filename null 로 만들기
     await models.applicationDoc.findOneAndUpdate({ applicantIdx },
       { portfolioFilename: null });
-    return true;
   }
-  throw new Error('no file types');
 };
 
 module.exports.removeFile = removeFile;
