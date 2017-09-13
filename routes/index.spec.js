@@ -179,8 +179,6 @@ describe('Test for REST API', function() {
   describe('- Applicant File Upload TEST :', () => {
     // 사진
     describe('POST /api/applicants/:applicantIdx/application/picture', () => {
-      // 정상적인 경우
-
       // - 업로드 하는 경우
       it('should return success msg and uploaded URL', (done) => {
         request(app)
@@ -213,36 +211,6 @@ describe('Test for REST API', function() {
             done();
           });
       });
-      // - 사진 삭제하는 경우
-      it('should return 204 code when removed successfully', (done) => {
-        request(app)
-          .delete(`/api/applicants/${initApplicantIdx}/application/picture`)
-          .set('token', initApplicantToken)
-          .end((err, res) => {
-            expect(res.status).to.be.equal(204);
-            expect(res.body).to.be.an('object', {});
-            done();
-          });
-      });
-      // - 삭제 후 재 업로드
-      it('should return success msg and uploaded URL (re-uploaded)', (done) => {
-        request(app)
-          .post(`/api/applicants/${initApplicantIdx}/application/picture`)
-          .set('token', initApplicantToken)
-          .attach('user_image', `${__dirname}/../test_files/cat2.jpeg`)
-          .end((err, res) => {
-            const body = res.body;
-            expect(res.status).to.be.equal(200);
-            expect(body).to.be.an('object');
-            expect(body).to.have.property('msg', 'success');
-            expect(body).to.have.nested.property('data.url');
-            expect(body).to.have.nested.property('data.fileName', 'cat2.jpeg');
-            done();
-          });
-      });
-
-      // 비정상적인 경우
-
       // - 잘못된 확장자가 올 경우
       it('should return Error object when upload with wrong filename extensions', (done) => {
         request(app)
@@ -302,6 +270,53 @@ describe('Test for REST API', function() {
           });
       });
     });
+
+    describe('DELETE /api/applicants/:applicantIdx/application/picture', () => {
+      // - 사진 삭제하는 경우
+      it('should return 204 code when removed successfully', (done) => {
+        request(app)
+          .delete(`/api/applicants/${initApplicantIdx}/application/picture`)
+          .set('token', initApplicantToken)
+          .end((err, res) => {
+            expect(res.status).to.be.equal(204);
+            expect(res.body).to.be.an('object', {});
+            done();
+          });
+      });
+      // - 사진 없는데 삭제요청하는 경우
+      it('should return 400 code when get bad remove request', (done) => {
+        request(app)
+          .delete(`/api/applicants/${initApplicantIdx}/application/picture`)
+          .set('token', initApplicantToken)
+          .end((err, res) => {
+            const body = res.body;
+            expect(res.status).to.be.equal(400);
+            expect(body).to.be.an('object');
+            expect(body).to.have.property('msg', 'Can not find file');
+            expect(body).to.have.nested.property('data', null);
+            done();
+          });
+      });
+    });
+
+    describe('Re-upload after DELETE', () => {
+      // - 삭제 후 재 업로드
+      it('should return success msg and uploaded URL', (done) => {
+        request(app)
+          .post(`/api/applicants/${initApplicantIdx}/application/picture`)
+          .set('token', initApplicantToken)
+          .attach('user_image', `${__dirname}/../test_files/cat2.jpeg`)
+          .end((err, res) => {
+            const body = res.body;
+            expect(res.status).to.be.equal(200);
+            expect(body).to.be.an('object');
+            expect(body).to.have.property('msg', 'success');
+            expect(body).to.have.nested.property('data.url');
+            expect(body).to.have.nested.property('data.fileName', 'cat2.jpeg');
+            done();
+          });
+      });
+    });
     // 포폴
     describe('POST /api/applicants/:applicantIdx/application/portfolio', () => {
       // 정상적인 경우
@@ -338,35 +353,6 @@ describe('Test for REST API', function() {
             done();
           });
       });
-      // - 포폴 삭제하는 경우
-      it('should return 204 code when removed successfully', (done) => {
-        request(app)
-          .delete(`/api/applicants/${initApplicantIdx}/application/portfolio`)
-          .set('token', initApplicantToken)
-          .end((err, res) => {
-            expect(res.status).to.be.equal(204);
-            expect(res.body).to.be.an('object', {});
-            done();
-          });
-      });
-      // - 삭제 후 재 업로드
-      it('should return success msg and uploaded URL (re-uploaded)', (done) => {
-        request(app)
-          .post(`/api/applicants/${initApplicantIdx}/application/portfolio`)
-          .set('token', initApplicantToken)
-          .attach('user_portfolio', `${__dirname}/../test_files/포트폴리오_소고기.pdf`)
-          .end((err, res) => {
-            const body = res.body;
-            expect(res.status).to.be.equal(200);
-            expect(body).to.be.an('object');
-            expect(body).to.have.property('msg', 'success');
-            expect(body).to.have.nested.property('data.url');
-            expect(body).to.have.nested.property('data.fileName', '포트폴리오_소고기.pdf');
-            done();
-          });
-      });
-
-      // 비정상적인 경우
       // - 잘못된 확장자가 올 경우
       it('should return Error object when upload with wrong filename extensions', (done) => {
         request(app)
@@ -422,6 +408,53 @@ describe('Test for REST API', function() {
             // error handler 로 넘어오지 않고, passport 에서 response 로 에러 줌
             // TODO: passport 따로 custom handling 필요
             expect(res.status).to.be.equal(401); // Unauthenticated. (인증이 필요한 요청)
+            done();
+          });
+      });
+    });
+
+    describe('DELETE /api/applicants/:applicantIdx/application/portfolio', () => {
+      // - 포폴 삭제하는 경우
+      it('should return 204 code when removed successfully', (done) => {
+        request(app)
+          .delete(`/api/applicants/${initApplicantIdx}/application/portfolio`)
+          .set('token', initApplicantToken)
+          .end((err, res) => {
+            expect(res.status).to.be.equal(204);
+            expect(res.body).to.be.an('object', {});
+            done();
+          });
+      });
+      // - 포폴 없는데 삭제요청하는 경우
+      it('should return 400 code when get bad remove request', (done) => {
+        request(app)
+          .delete(`/api/applicants/${initApplicantIdx}/application/portfolio`)
+          .set('token', initApplicantToken)
+          .end((err, res) => {
+            const body = res.body;
+            expect(res.status).to.be.equal(400);
+            expect(body).to.be.an('object');
+            expect(body).to.have.property('msg', 'Can not find file');
+            expect(body).to.have.nested.property('data', null);
+            done();
+          });
+      });
+    });
+
+    describe('Re-upload after DELETE', () => {
+      // - 삭제 후 재 업로드
+      it('should return success msg and uploaded URL', (done) => {
+        request(app)
+          .post(`/api/applicants/${initApplicantIdx}/application/portfolio`)
+          .set('token', initApplicantToken)
+          .attach('user_portfolio', `${__dirname}/../test_files/포트폴리오_소고기.pdf`)
+          .end((err, res) => {
+            const body = res.body;
+            expect(res.status).to.be.equal(200);
+            expect(body).to.be.an('object');
+            expect(body).to.have.property('msg', 'success');
+            expect(body).to.have.nested.property('data.url');
+            expect(body).to.have.nested.property('data.fileName', '포트폴리오_소고기.pdf');
             done();
           });
       });
@@ -571,6 +604,8 @@ describe('Test for REST API', function() {
             done();
           });
       });
+    });
+    describe('CANNOT Update & Delete after Submit', () => {
       // - 저장 불가능 해야 함
       it('should return Error object when saving an already submitted application', (done) => {
         request(app)
@@ -686,7 +721,8 @@ describe('Test for REST API', function() {
               'userName', 'userPosition', 'applicantGender',
               'applicantBirthday', 'applicantLocation', 'applicantPhone', 'applicantOrganization',
               'applicantMajor', 'applicantPictureFilename', 'entryRoute', 'portfolioFilename',
-              'personalUrl', 'answers', 'interviewAvailableTime']);
+              'personalUrl', 'answers', 'interviewAvailableTime', 'applicantImageUrl',
+              'applicantPortfolioUrl']);
             expect(body.data).to.have.property('userName', testData3.userName);
             expect(body.data).to.have.property('userPosition', testData3.userPosition);
             expect(body.data).to.have.property('applicantGender', testData3.applicantGender);
