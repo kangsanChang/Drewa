@@ -131,7 +131,7 @@ const verifyDeadline = async () => {
                                .exec();
     const now = new Date().toLocaleString();
     const time = new Date(result[0].deadline).toLocaleString();
-    return now > time;
+    return now > time; // 시간이 남았으면 true 만료되었으면 false
   } catch (err) {
     throw err;
   }
@@ -141,7 +141,7 @@ module.exports.verifyDeadline = verifyDeadline;
 
 module.exports.checkTime = async (req, res, next) => {
   try {
-    if (await verifyDeadline()) {
+    if (await !verifyDeadline()) {
       const err = new Error('모집 기간이 지났습니다!');
       err.status = 400;
       throw err;
@@ -162,7 +162,6 @@ module.exports.checkSubmit = async (req, res, next) => {
       err.status = 400;
       throw err;
     }
-    req.applicantIdx = result.applicantIdx;
     next();
   } catch (err) {
     next(err);
