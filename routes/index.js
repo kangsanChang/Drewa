@@ -8,8 +8,9 @@ const checkTime = aController.checkTime;
 const checkSubmit = aController.checkSubmit;
 const files = require('../controller/fileUpload');
 const recruit = require('../controller/recruitmentInfo');
-const imageUpload = files.imageUpload;
-const portfolioUpload = files.portfolioUpload;
+// const imageUpload = files.imageUpload.single('user_image');
+const portfolioUpload = files.portfolioUpload.single('user_portfolio');
+const uploadPic = files.uploadPic;
 
 // /api/ 하위로 들어옴
 
@@ -40,13 +41,13 @@ module.exports = (router) => {
 
   // 지원서 내부 업로드 (사진, 포폴)
   router.route('/applicants/:applicantIdx/application/picture')
-        // 사진 등록 <input name='user_image'> 기준
-        .post(auth, onlyApplicant, checkSubmit, imageUpload.single('user_image'), files.uploadFile)
+        // 사진 등록 <input name='user_image'> 기준 ***************************** files.uploadFile
+        .post(auth, onlyApplicant, checkSubmit, uploadPic)
         // 사진 삭제
         .delete(auth, onlyApplicant, checkSubmit, files.removePicture);
   router.route('/applicants/:applicantIdx/application/portfolio')
         // 포트폴리오 등록 <input name='user_portfolio'> 기준
-        .post(auth, onlyApplicant, checkSubmit, portfolioUpload.single('user_portfolio'), files.uploadFile)
+        .post(auth, onlyApplicant, checkSubmit, portfolioUpload, files.uploadFile)
         // 포트폴리오 삭제
         .delete(auth, onlyApplicant, checkSubmit, files.removePortfolio);
 
