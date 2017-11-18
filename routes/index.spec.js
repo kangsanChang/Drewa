@@ -13,7 +13,7 @@ describe('Test for REST API', function() {
   let initApplicantToken;
   let initApplicantIdx;
   const initialData = { userEmail: 'T_E_S_T_B_O_Y@gmail.com', userPassword: 'L0NGPaSsWoRd' };
-  this.timeout(15000); // wait for DB connection
+  this.timeout(150000); // wait for DB connection
   // Create initial data
   it('should create initial data successfully.', (done) => {
     request(app)
@@ -175,7 +175,7 @@ describe('Test for REST API', function() {
     });
   });
 
-  // File Upload
+  // File Upload TEST
   describe('- Applicant File Upload TEST :', () => {
     // 사진
     describe('POST /api/applicants/:applicantIdx/application/picture', () => {
@@ -219,6 +219,7 @@ describe('Test for REST API', function() {
           .attach('user_image', `${__dirname}/../test_files/bad_cat.gif`)
           .end((err, res) => {
             const body = res.body;
+            console.log(body);
             expect(res.status).to.be.equal(400);
             expect(body).to.be.an('object');
             expect(body).to.have.property('msg', 'goes wrong on the filename extensions');
@@ -460,6 +461,8 @@ describe('Test for REST API', function() {
       });
     });
   });
+
+  // Application TEST
   describe('- Application Save, Submit and GET TEST :', () => {
     // Post json data.
     const testData1 = {
@@ -719,11 +722,10 @@ describe('Test for REST API', function() {
             expect(body).to.be.an('object');
             expect(body).to.have.property('msg', 'success');
             expect(body.data).has.all.keys([
-              'userName', 'userPosition', 'applicantGender',
-              'applicantBirthday', 'applicantLocation', 'applicantPhone', 'applicantOrganization',
-              'applicantMajor', 'applicantPictureFilename', 'entryRoute', 'portfolioFilename',
-              'personalUrl', 'answers', 'interviewAvailableTime', 'applicantImageUrl',
-              'applicantPortfolioUrl']);
+              'userName', 'userPosition', 'applicantGender', 'applicantBirthday',
+              'applicantLocation', 'applicantPhone', 'applicantOrganization', 'applicantMajor',
+              'applicantPictureFilename', 'entryRoute', 'portfolioFilename', 'personalUrl',
+              'answers', 'interviewAvailableTime', 'applicantImageUrl', 'applicantPortfolioUrl']);
             expect(body.data).to.have.property('userName', testData3.userName);
             expect(body.data).to.have.property('userPosition', testData3.userPosition);
             expect(body.data).to.have.property('applicantGender', testData3.applicantGender);

@@ -1,6 +1,22 @@
 const models = require('../models');
 const auth = require('./authController');
 const bcrypt = require('bcrypt');
+const config = require('./../config/config.json');
+const request = require('request');
+
+const verify_recaptcha = (recapCode) => {
+  const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${config.grecaptcha}&response=${recapCode}`;
+  return new Promise((resolve) => {
+    request(verificationUrl, (err, res, body) => {
+      if (err) {
+        const error = new Error('Failed to verify reCAPTCHA');
+        error.status = 400;
+        throw (error);
+      }
+      resolve(body);
+    });
+  });
+};
 
 module.exports.applicantSignUp = async (req, res, next) => {
   // Transaction 준비
@@ -12,12 +28,25 @@ module.exports.applicantSignUp = async (req, res, next) => {
       err.status = 400;
       throw err;
     }
-    const { userEmail, userPassword } = req.body;
+    const { userEmail, userPassword, recap_code } = req.body;
 
     // Email Validation
     const check = await models.userInfoTb.find({ where: { userEmail } });
     if (check !== null) {
       const err = new Error('User Already Exists');
+      err.status = 400;
+      throw err;
+    }
+
+    // Verification reCAPTCHA
+    const verified = await verify_recaptcha(recap_code);
+    // string -> object
+    const v = JSON.parse(verified);
+
+    if (!v.success) {
+      // reCAPTCHA token 인증이 false 인 경우
+      // reload 되지 않은 reCAPTCHA widget 을 이용하거나, 올바르지 않은 key 로 접근하는 경우
+      const err = new Error('reCAPTCHA Failed');
       err.status = 400;
       throw err;
     }
