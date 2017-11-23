@@ -7,13 +7,6 @@
 const app = require('../app');
 const debug = require('debug')('drewa:server');
 const http = require('http');
-const models = require('../models');
-
-// sync with Initializing
-// DB 생성 sync
-models.sequelize.sync().then(async () => {
-  console.log('Sync complete');
-});
 
 /**
  * Create HTTP server.

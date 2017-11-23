@@ -69,4 +69,10 @@ mongoose.connection.once('open', () => {
   }
 });
 
+// sync with Initializing
+// DB 생성 sync
+sequelize.sync().then(async () => {
+  console.log('Sync complete');
+});
+
 module.exports = db;

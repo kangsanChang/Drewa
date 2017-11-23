@@ -52,7 +52,7 @@ app.use((err, req, res, next) => {
   if (err.code === 'LIMIT_FILE_SIZE') {
     console.log('catch LIMIT FILE ERROR in app.js', err);
     err.status = 400;
-  };
+  }
 
   res.status(err.status || 500);
   res.json({ msg: err.message, data: null });

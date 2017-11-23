@@ -1,0 +1,24 @@
+{
+  "apps": [
+    {
+      "name": "api server",
+      "script": "./bin/www.js",
+      "watch": false,
+      "cwd": "./",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss.SSSS Z",
+      "error_file": "./logs/pm2_api_error.log",
+      "out_file": "./logs/pm2_api_out.log",
+      "combine_logs": true,
+      "instances": 1,
+      "exec_mode": "cluster",
+      "env_production": {
+        "NODE_ENV": "production",
+        "PORT": 3000
+      },
+      "env_development": {
+        "NODE_ENV": "development",
+        "PORT": 3000
+      }
+    }
+  ]
+}
