@@ -47,12 +47,14 @@ const portfolioFilter = (req, file, cb) => {
   return cb(err, false);
 };
 
-const imageUpload = multer(
-  { storage, limits: { fileSize: imageMax }, fileFilter: imageFilter });
+const imageUpload = multer({ storage, limits: { fileSize: imageMax }, fileFilter: imageFilter });
 module.exports.imageUpload = imageUpload;
 
-const portfolioUpload = multer(
-  { storage, limits: { fileSize: portfolioMax }, fileFilter: portfolioFilter });
+const portfolioUpload = multer({
+  storage,
+  limits: { fileSize: portfolioMax },
+  fileFilter: portfolioFilter,
+});
 module.exports.portfolioUpload = portfolioUpload;
 
 const clearToS3 = removeKeyPath => new Promise(async (resolve, reject) => {
@@ -74,10 +76,10 @@ const saveToS3 = (file, keyPath) => new Promise(async (resolve, reject) => {
   const s3obj = new AWS.S3({ params });
   // 업데이트 되는 경우에 key 값 같으면 자동으로 덮어 씀
   await s3obj.upload({ Body: file.buffer })
-             .send((err, data) => {
-               if (err) { reject(err); }
-               resolve(data.Location);
-             });
+    .send((err, data) => {
+      if (err) { reject(err); }
+      resolve(data.Location);
+    });
 });
 
 const getFileName = async (fileType, applicantIdx) => {

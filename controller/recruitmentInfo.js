@@ -29,9 +29,9 @@ module.exports.getRecruitInfo = async (req, res, next) => {
   try {
     // 시간순으로 가장 최근에 추가된것만 가져옴
     const result = await models.recruitmentInfo.find()
-                               .sort('-createdAt')
-                               .limit(1)
-                               .exec();
+      .sort('-createdAt')
+      .limit(1)
+      .exec();
     res.r(result[0]);
   } catch (err) {
     next(err);
