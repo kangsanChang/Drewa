@@ -7,31 +7,31 @@
     "test": "NODE_ENV=test mocha routes/index.spec.js"
   },
   "dependencies": {
-    "aws-sdk": "^2.96.0",
-    "bcrypt": "^1.0.2",
+    "aws-sdk": "^2.156.0",
+    "bcrypt": "^1.0.3",
     "body-parser": "~1.17.1",
     "cookie-parser": "~1.4.3",
-    "debug": "~2.6.3",
-    "express": "~4.15.2",
+    "debug": "^2.6.9",
+    "express": "^4.15.5",
     "jade": "~1.11.0",
-    "jsonwebtoken": "^7.4.1",
-    "mongoose": "^4.11.1",
+    "jsonwebtoken": "^7.4.3",
+    "mongoose": "^4.13.4",
     "morgan": "~1.8.1",
     "multer": "^1.3.0",
-    "mysql2": "^1.3.5",
-    "nodemailer": "^4.0.1",
+    "mysql2": "^1.5.1",
+    "nodemailer": "^4.4.0",
     "passport": "^0.3.2",
-    "passport-jwt": "^2.2.1",
+    "passport-jwt": "^3.0.1",
     "request": "^2.83.0",
-    "sequelize": "^4.2.1",
-    "serve-favicon": "~2.4.2"
+    "sequelize": "^4.22.15",
+    "serve-favicon": "^2.4.5"
   },
   "devDependencies": {
     "chai": "^4.1.1",
     "eslint": "^4.9.0",
     "eslint-config-airbnb-base": "^12.0.2",
-    "eslint-plugin-import": "^2.7.0",
-    "mocha": "^3.5.0",
+    "eslint-plugin-import": "^2.8.0",
+    "mocha": "^3.5.3",
     "supertest": "^3.0.0"
   }
 }

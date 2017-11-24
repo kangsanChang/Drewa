@@ -3,7 +3,8 @@ const path = require('path');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const passport = require('passport');
+const auth = require('./controller/jwtAuth')();
+
 global.env = process.env.NODE_ENV || 'development';
 
 const app = express();
@@ -23,8 +24,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // initializing passport with passport-jwt strategy
-app.use(passport.initialize());
-require('./controller/authController').jwtPassport();
+app.use(auth.initialize());
 
 app.use((req, res, next) => {
   res.r = (data) => {

@@ -97,22 +97,22 @@ module.exports.getMyApplication = async (req, res, next) => {
 
     const result = {
       // From UserInfo
-      userName: userInfoRet.userName,
-      userPosition: userInfoRet.userPosition,
+      name: userInfoRet.userName,
+      position: userInfoRet.userPosition,
       // From ApplicantInfo
-      applicantGender: applicantInfoRet.applicantGender,
-      applicantBirthday: applicantInfoRet.applicantBirthday,
-      applicantLocation: applicantInfoRet.applicantLocation,
-      applicantPhone: applicantInfoRet.applicantPhone,
-      applicantOrganization: applicantInfoRet.applicantOrganization,
-      applicantMajor: applicantInfoRet.applicantMajor,
-      applicantPictureFilename: applicantInfoRet.applicantPictureFilename,
+      gender: applicantInfoRet.applicantGender,
+      birthday: applicantInfoRet.applicantBirthday,
+      residence: applicantInfoRet.applicantLocation,
+      phone: applicantInfoRet.applicantPhone,
+      company: applicantInfoRet.applicantOrganization,
+      major: applicantInfoRet.applicantMajor,
+      PictureFilename: applicantInfoRet.applicantPictureFilename,
       // From ApplicantDoc
-      entryRoute: applicationDocRet.entryRoute,
+      knownFrom: applicationDocRet.entryRoute,
       portfolioFilename: applicationDocRet.portfolioFilename,
       personalUrl: applicationDocRet.personalUrl,
       answers: applicationDocRet.answers,
-      interviewAvailableTime: applicationDocRet.interviewAvailableTime,
+      interviewAvailableTimes: applicationDocRet.interviewAvailableTime,
       // From FileUrl
       applicantImageUrl: null,
       applicantPortfolioUrl: null,

@@ -1,30 +1,7 @@
-const JWTStrategy = require('passport-jwt').Strategy;
-const extractJwt = require('passport-jwt').ExtractJwt;
 const config = require('../config/config.json');
 const jwt = require('jsonwebtoken');
-const passport = require('passport');
 const bcrypt = require('bcrypt');
 const models = require('../models');
-
-module.exports.jwtPassport = () => {
-  const opts = {
-    /*
-     * extractJwt.fromAuthHeader -> Header name is 'Authorization', values are like 'JWT TOKEN'
-     * extractJwt.fromHeader('NAME') -> Header name is 'NAME', values are like 'TOKEN'
-     */
-    // jwtFromRequest: extractJwt.fromAuthHeader(),
-    jwtFromRequest: extractJwt.fromHeader('token'),
-    secretOrKey: config.auth.SECRET_KEY,
-  };
-  passport.use(new JWTStrategy(opts, (jwtPayload, done) => {
-    // Matching decoded token
-    const result = models.userInfoTb.findOne({ where: { userEmail: jwtPayload.userEmail } });
-    if (!result) {
-      return done(new Error('No user matched with jwt payload'));
-    }
-    return done(null, jwtPayload);
-  }));
-};
 
 const createToken = async (index, userEmail, userType) => {
   const payloads = { userEmail, userType };
@@ -126,9 +103,9 @@ module.exports.postLogin = async (req, res, next) => {
 const verifyDeadline = async () => {
   try {
     const result = await models.recruitmentInfo.find()
-                               .sort('-createdAt')
-                               .limit(1)
-                               .exec();
+      .sort('-createdAt')
+      .limit(1)
+      .exec();
     const now = new Date().toLocaleString();
     const time = new Date(result[0].deadline).toLocaleString();
     return now > time; // 시간이 남았으면 true 만료되었으면 false
@@ -167,6 +144,3 @@ module.exports.checkSubmit = async (req, res, next) => {
     next(err);
   }
 };
-
-// TODO: custom callback 으로 401 및 인증 실패 시 직접 handling 하고 싶음.
-module.exports.authenticate = passport.authenticate('jwt', { session: false });

@@ -4,8 +4,8 @@ const bcrypt = require('bcrypt');
 const config = require('./../config/config.json');
 const request = require('request');
 
-const verify_recaptcha = (recapCode) => {
-  const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${config.grecaptcha}&response=${recapCode}`;
+const verifyRecaptcha = (recaptchaToken) => {
+  const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${config.grecaptcha}&response=${recaptchaToken}`;
   return new Promise((resolve) => {
     request(verificationUrl, (err, res, body) => {
       if (err) {
@@ -28,18 +28,10 @@ module.exports.applicantSignUp = async (req, res, next) => {
       err.status = 400;
       throw err;
     }
-    const { userEmail, userPassword, recap_code } = req.body;
-
-    // Email Validation
-    const check = await models.userInfoTb.find({ where: { userEmail } });
-    if (check !== null) {
-      const err = new Error('User Already Exists');
-      err.status = 400;
-      throw err;
-    }
+    const { userEmail, userPassword, recaptchaToken } = req.body;
 
     // Verification reCAPTCHA
-    const verified = await verify_recaptcha(recap_code);
+    const verified = await verifyRecaptcha(recaptchaToken);
     // string -> object
     const v = JSON.parse(verified);
 
@@ -51,11 +43,19 @@ module.exports.applicantSignUp = async (req, res, next) => {
       throw err;
     }
 
+    // Email Validation
+    const check = await models.userInfoTb.find({ where: { userEmail } });
+    if (check !== null) {
+      const err = new Error('User Already Exists');
+      err.status = 400;
+      throw err;
+    }
+
     let season = await models.recruitmentInfo.find()
-                             .sort('-createdAt')
-                             .limit(1)
-                             .select('season')
-                             .exec();
+      .sort('-createdAt')
+      .limit(1)
+      .select('season')
+      .exec();
     season = season[0].season;
     let newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
