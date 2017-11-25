@@ -1,9 +1,8 @@
 const models = require('../models');
 const email = require('./Email');
-const removeFile = require('./fileUpload').removeFile;
-const getFileName = require('./fileUpload').getFileName;
-const getKeyPath = require('./fileUpload').getKeyPath;
-const getFileUrl = require('./fileUpload').getFileUrl;
+const {
+  removeFile, getFileName, getKeyPath, getFileUrl,
+} = require('./fileUpload');
 
 module.exports.getApplications = async (req, res, next) => {
   try {
@@ -17,10 +16,11 @@ module.exports.getApplications = async (req, res, next) => {
 const updateApplication = async (req) => {
   const t = await models.sequelize.transaction();
   try {
-    const applicantIdx = req.user.applicantIdx;
+    const { applicantIdx } = req.user;
     const applicantInfo = await models.applicantInfoTb.findOne(
-      { where: { applicantIdx }, transaction: t });
-    const userIdx = applicantInfo.userIdx;
+      { where: { applicantIdx }, transaction: t },
+    );
+    const { userIdx } = applicantInfo;
     const data = req.body;
     const { userName, userPosition } = data;
     data.interviewAvailableTime.forEach((elem, i, arr) => { arr[i] = new Date(elem); });
@@ -91,7 +91,7 @@ module.exports.getMyApplication = async (req, res, next) => {
     const applicationDocRet = await models.applicationDoc.findOne({ applicantIdx }).exec();
     const applicantInfo = await models.applicantInfoTb.findOne({ where: { applicantIdx } });
     const applicantInfoRet = applicantInfo.dataValues;
-    const userIdx = applicantInfoRet.userIdx;
+    const { userIdx } = applicantInfoRet;
     const userInfo = await models.userInfoTb.findOne({ where: { userIdx } });
     const userInfoRet = userInfo.dataValues;
 
@@ -101,7 +101,7 @@ module.exports.getMyApplication = async (req, res, next) => {
       position: userInfoRet.userPosition,
       // From ApplicantInfo
       gender: applicantInfoRet.applicantGender,
-      birthday: applicantInfoRet.applicantBirthday,
+      birth: applicantInfoRet.applicantBirthday,
       residence: applicantInfoRet.applicantLocation,
       phone: applicantInfoRet.applicantPhone,
       company: applicantInfoRet.applicantOrganization,
@@ -163,8 +163,8 @@ module.exports.remover = remover;
 
 module.exports.removeApplication = async (req, res, next) => {
   try {
-    const applicantIdx = req.params.applicantIdx;
-    const userEmail = req.user.userEmail;
+    const { applicantIdx } = req.params;
+    const { userEmail } = req.user;
     const result = remover(applicantIdx, userEmail);
     res.r(result);
   } catch (err) {

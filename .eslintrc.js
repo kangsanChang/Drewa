@@ -3,23 +3,24 @@ module.exports = {
   'rules': {
     'func-names': [
       'error',
-      'never'
+      'never',
     ],
     // turn off newline after import(require)
     'import/newline-after-import': [
-      'off'
+      'off',
     ],
     // Exception just for _id
     'no-underscore-dangle': [
       'error',
       {
         'allow': [
-          '_id'
-        ]
-      }
-    ]
+          '_id',
+        ],
+      },
+    ],
+    'function-paren-newline': ['error', 'consistent'],
   },
   'env': {
     'mocha': true,
-  }
+  },
 };

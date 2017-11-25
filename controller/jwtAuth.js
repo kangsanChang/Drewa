@@ -2,8 +2,7 @@ const passport = require('passport');
 const passportJWT = require('passport-jwt');
 const models = require('../models');
 const config = require('../config/config.json');
-const ExtractJwt = passportJWT.ExtractJwt;
-const Strategy = passportJWT.Strategy;
+const { ExtractJwt, Strategy } = passportJWT;
 
 const params = {
   secretOrKey: config.auth.SECRET_KEY,
