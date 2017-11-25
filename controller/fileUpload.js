@@ -54,7 +54,7 @@ const portfolioUpload = multer({
   storage,
   limits: { fileSize: portfolioMax },
   fileFilter: portfolioFilter,
-});
+}).single('user_portfolio');
 module.exports.portfolioUpload = portfolioUpload;
 
 const clearToS3 = removeKeyPath => new Promise(async (resolve, reject) => {
@@ -108,7 +108,7 @@ module.exports.getFileUrl =
 const helloworld = async (req, res, next) => {
   try {
     console.log('go to hello world');
-    const file = req.file;
+    const { file } = req;
     console.log(file);
     if (!file) {
       const err = new Error('No file!');
@@ -149,7 +149,8 @@ const helloworld = async (req, res, next) => {
 const uploadPic = async (req, res, next) => {
   try {
     const upload = await multer(
-      { storage, limits: { fileSize: imageMax }, fileFilter: imageFilter }).single('user_image');
+      { storage, limits: { fileSize: imageMax }, fileFilter: imageFilter },
+    ).single('user_image');
     // upload(req, res, err => {
     //   if (err) {
     //     throw err;
@@ -162,12 +163,10 @@ const uploadPic = async (req, res, next) => {
         if (err.code === 'LIMIT_FILE_SIZE') { err.status = 400; } // LIMIT_FILE_SIZE : Multer's default error message
         console.log('in upload pic limit file size error \n');
         throw err;
-        console.log('no err throw');
       } else {
         helloworld(req, res, next);
       }
     });
-
   } catch (e) {
     console.log('catch error! eeee', e);
     next(e);
@@ -178,7 +177,7 @@ module.exports.uploadPic = uploadPic;
 
 module.exports.uploadFile = async (req, res, next) => {
   try {
-    const file = req.file;
+    const { file } = req;
     if (!file) {
       const err = new Error('Unexpected file!');
       err.status = 400;
@@ -249,8 +248,7 @@ module.exports.removeFile = removeFile;
 
 module.exports.removePicture = async (req, res, next) => {
   try {
-    const userEmail = req.user.userEmail;
-    const applicantIdx = req.user.applicantIdx;
+    const { userEmail, applicantIdx } = req.user;
     await removeFile(applicantIdx, userEmail, 'images');
     res.status(204).end(); // 204 (No-content) 는 res.body 없이 res 를 종료한다.
   } catch (err) {
@@ -260,8 +258,7 @@ module.exports.removePicture = async (req, res, next) => {
 
 module.exports.removePortfolio = async (req, res, next) => {
   try {
-    const userEmail = req.user.userEmail;
-    const applicantIdx = req.user.applicantIdx;
+    const { userEmail, applicantIdx } = req.user;
     await removeFile(applicantIdx, userEmail, 'portfolios');
     res.status(204).end();
   } catch (err) {

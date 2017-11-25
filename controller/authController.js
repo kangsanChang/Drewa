@@ -37,15 +37,15 @@ const comparePassword = async (userEmail, userPassword) => {
     }
     // response 를 index 와 함꼐 줌
     if (result.userType === 'applicant') {
-      const userIdx = result.userIdx;
+      const { userIdx } = result;
       const userApplicantInfo = await models.applicantInfoTb.findOne({ where: { userIdx } });
-      const applicantIdx = userApplicantInfo.applicantIdx;
+      const { applicantIdx } = userApplicantInfo;
       const token = await createToken(applicantIdx, result.userEmail, result.userType);
       return { token, applicantIdx };
     } else if (result.userType === 'interviewer') {
       // TODO : 그냥 interviewer 인덱스를 주는 건 어떨까?
       const token = await createToken(result.userIdx, result.userEmail, result.userType);
-      const userIdx = result.userIdx;
+      const { userIdx } = result;
       return { token, userIdx };
     }
   } catch (err) {
@@ -91,7 +91,7 @@ module.exports.postLogin = async (req, res, next) => {
     if (!req.body.userEmail || !req.body.userPassword) {
       const err = new Error('There is an empty field');
       err.status = 400;
-      throw(err);
+      throw err;
     }
     const data = await comparePassword(req.body.userEmail, req.body.userPassword);
     res.r(data);

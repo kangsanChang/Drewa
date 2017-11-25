@@ -56,7 +56,7 @@ module.exports.applicantSignUp = async (req, res, next) => {
       .limit(1)
       .select('season')
       .exec();
-    season = season[0].season;
+    [season] = season;
     let newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
@@ -65,8 +65,9 @@ module.exports.applicantSignUp = async (req, res, next) => {
     };
     const result = await models.userInfoTb.create(newData, { transaction: t });
     const applicantRet = await models.applicantInfoTb.create(
-      { userIdx: result.userIdx }, { transaction: t });
-    const applicantIdx = applicantRet.applicantIdx;
+      { userIdx: result.userIdx }, { transaction: t },
+    );
+    const { applicantIdx } = applicantRet;
     const applicationRet = await models.applicationDoc.create({ applicantIdx });
     newData = {
       applicantIdx: applicantRet.applicantIdx,

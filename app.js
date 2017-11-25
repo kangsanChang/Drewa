@@ -15,7 +15,8 @@ logger.token('ip', req => req.headers['x-forwarded-for']);
 if (process.env.NODE_ENV !== 'test') {
   app.use(logger(
     ':ip > :remote-user [:ktime] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
-    { skip: (req, res) => req.headers['user-agent'] === 'ELB-HealthChecker/2.0' }));
+    { skip: (req, res) => req.headers['user-agent'] === 'ELB-HealthChecker/2.0' },
+  ));
 }
 
 app.use(bodyParser.json());
