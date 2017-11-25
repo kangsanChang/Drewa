@@ -2,17 +2,15 @@ const fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
 const basename = path.basename(module.filename);
-const env = process.env.NODE_ENV || 'development';
-const config = require('../config/config.json')[env];
+const config = require('../config/config.json');
+const dbConfig = config[global.env];
 // Split into two environments. test/development(default)
-const mongoConfig = env === 'test'
-  ? require('../config/config.json').mongodb_test
-  : require('../config/config.json').mongodb_dev;
+const mongoEnv = `mongodb_${global.env}`;
+const mongoConfig = require('../config/config.json')[mongoEnv];
 const mongoose = require('mongoose');
 const db = {};
-const sequelize = config.use_env_variable
-  ? new Sequelize(process.env[config.use_env_variable])
-  : new Sequelize(config.database, config.username, config.password, config);
+const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, dbConfig);
+const bcrypt = require('bcrypt');
 
 fs.readdirSync(__dirname)
   .filter(file => (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js') &&
@@ -34,7 +32,7 @@ db.hasAllProp = (body, model) => {
   if (db[model].rawAttributes) {
     attributes =
       Object.getOwnPropertyNames(db[model].rawAttributes)
-            .filter(prop => (prop !== 'created_at') && (prop !== 'updated_at') && (body[prop]));
+        .filter(prop => (prop !== 'created_at') && (prop !== 'updated_at') && (body[prop]));
   } else {
     attributes = Object.getOwnPropertyNames(db[model].schema.obj);
   }
@@ -64,7 +62,7 @@ mongoose.connect(mongoConfig.url, {
   useMongoClient: true,
 });
 mongoose.connection.once('open', () => {
-  if (process.env.NODE_ENV !== 'test') {
+  if (global.env !== 'test') {
     console.log('Mongoose on!');
   }
 });
@@ -72,7 +70,32 @@ mongoose.connection.once('open', () => {
 // sync with Initializing
 // DB 생성 sync
 sequelize.sync().then(async () => {
-  console.log('Sync complete');
+  if (global.env !== 'test') {
+    console.log('Sync complete');
+  }
 });
+
+// 서버 실행시, Admin 게정이 없으면 생성한다
+// 있는 경우에는 비밀번호만 업데이트 한다.
+(async () => {
+  db.userInfoTb.findOrCreate({
+    where: { userEmail: 'admin@depromeet.com' },
+    defaults: {
+      userName: 'admin',
+      userPassword: bcrypt.hashSync(config.adminPassword, 10),
+      userType: 'admin',
+      userPosition: 'admin',
+      userSeason: 0,
+    },
+  }).spread(async (user, created) => {
+    if (created) {
+      console.log('due to admin account is not exists, account created');
+    } else {
+      user.userPassword = bcrypt.hashSync(config.adminPassword, 10);
+      await user.save();
+      console.log('password updated');
+    }
+  });
+})();
 
 module.exports = db;

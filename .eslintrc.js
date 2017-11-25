@@ -19,6 +19,7 @@ module.exports = {
       },
     ],
     'function-paren-newline': ['error', 'consistent'],
+    'no-param-reassign': ['error', { 'props': false }],
   },
   'env': {
     'mocha': true,

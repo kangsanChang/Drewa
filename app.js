@@ -1,18 +1,16 @@
+global.env = process.env.NODE_ENV || 'development';
 const express = require('express');
 const path = require('path');
 const logger = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
-const auth = require('./controller/jwtAuth')();
-
-global.env = process.env.NODE_ENV || 'development';
 
 const app = express();
 
 logger.token('ktime', () => new Date().toLocaleString());
 logger.token('ip', req => req.headers['x-forwarded-for']);
 
-if (process.env.NODE_ENV !== 'test') {
+if (global.env !== 'test') {
   app.use(logger(
     ':ip > :remote-user [:ktime] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"',
     { skip: (req, res) => req.headers['user-agent'] === 'ELB-HealthChecker/2.0' },
@@ -24,7 +22,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Load modles
+require('./models');
+
 // initializing passport with passport-jwt strategy
+const auth = require('./controller/jwtAuth')();
 app.use(auth.initialize());
 
 app.use((req, res, next) => {

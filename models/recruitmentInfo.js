@@ -7,7 +7,12 @@ const recruitmentInfoSchema = new mongoose.Schema(
     developerQuestions: [String],
     designerQuestions: [String],
     deadline: Date,
-    interviewTime: [String],
+    interviewTime: [
+      {
+        date: { type: String },
+        times: [String],
+      },
+    ],
   }, {
     timestamps: { createdAt: 'createdAt' },
   },
