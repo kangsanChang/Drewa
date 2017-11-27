@@ -51,16 +51,15 @@ module.exports.applicantSignUp = async (req, res, next) => {
       throw err;
     }
 
-    let season = await models.recruitmentInfo.find()
+    const sInfo = await models.recruitmentInfo.findOne()
       .sort('-createdAt')
-      .limit(1)
       .select('season')
       .exec();
-    [season] = season;
+    const { season: userSeason } = sInfo;
     let newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
-      userSeason: season,
+      userSeason,
       userEmail,
     };
     const result = await models.userInfoTb.create(newData, { transaction: t });
