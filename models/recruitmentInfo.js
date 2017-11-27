@@ -3,9 +3,10 @@ const mongoose = require('mongoose');
 const recruitmentInfoSchema = new mongoose.Schema(
   {
     season: Number,
-    commQuestions: [String],
-    developerQuestions: [String],
-    designerQuestions: [String],
+    // commQuestions: [String],
+    // developerQuestions: [String],
+    // designerQuestions: [String],
+    questions: [String],
     deadline: Date,
     interviewTime: [
       {
