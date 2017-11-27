@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       applicantBirthday: {
-        type: DataTypes.DATEONLY,
+        type: DataTypes.STRING,
         field: 'applicant_birthday',
       },
       applicantLocation: {
