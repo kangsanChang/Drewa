@@ -3,13 +3,17 @@ const path = require('path');
 const Sequelize = require('sequelize');
 const basename = path.basename(module.filename);
 const config = require('../config/config.json');
-const dbConfig = config[global.env];
+const { dbConfig } = config;
+// Trun off warning : https://github.com/sequelize/sequelize/issues/8417
+dbConfig.mysql.operatorsAliases = Sequelize.Op;
+const mysql = dbConfig.mysql[global.env];
+const mongo = dbConfig.mongo[global.env];
 // Split into two environments. test/development(default)
 const mongoEnv = `mongodb_${global.env}`;
 const mongoConfig = require('../config/config.json')[mongoEnv];
 const mongoose = require('mongoose');
 const db = {};
-const sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, dbConfig);
+const sequelize = new Sequelize(mysql.database, mysql.username, mysql.password, dbConfig.mysql);
 const bcrypt = require('bcrypt');
 
 fs.readdirSync(__dirname)
@@ -26,28 +30,6 @@ Object.keys(db).forEach((modelName) => {
   }
 });
 
-// Request Body Validation
-db.hasAllProp = (body, model) => {
-  let attributes = null;
-  if (db[model].rawAttributes) {
-    attributes =
-      Object.getOwnPropertyNames(db[model].rawAttributes)
-        .filter(prop => (prop !== 'created_at') && (prop !== 'updated_at') && (body[prop]));
-  } else {
-    attributes = Object.getOwnPropertyNames(db[model].schema.obj);
-  }
-  const copied = {};
-  attributes.forEach((prop) => {
-    if (!body[prop]) {
-      const err = new Error('Body property exception');
-      err.status = 400;
-      throw err;
-    }
-    copied[prop] = body[prop];
-  });
-  return copied;
-};
-
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
@@ -58,7 +40,7 @@ db.recruitmentInfo = require('./recruitmentInfo');
 // MongoDB Initializing
 mongoose.Promise = global.Promise;
 // Mongoose 4.11 부터 아래와 같이 옵션을 줘야함 http://mongoosejs.com/docs/connections.html#use-mongo-client
-mongoose.connect(mongoConfig.url, {
+mongoose.connect(mongo, {
   useMongoClient: true,
 });
 mongoose.connection.once('open', () => {
