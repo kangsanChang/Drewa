@@ -15,9 +15,9 @@ const applicationDocSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    personalUrl: [String],
+    personalUrl: String,
     answers: [String],
-    interviewAvailableTime: [Date],
+    interviewAvailableTime: [String],
   },
 );
 

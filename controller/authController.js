@@ -3,8 +3,9 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const models = require('../models');
 
-const createToken = async (index, userEmail, userType) => {
-  const payloads = { userEmail, userType };
+const createToken = async (index, userEmail, userType, userPosition) => {
+  // TODO : 토큰 PAYLOADS 개선하자
+  const payloads = { userEmail, userType, userPosition };
   if (userType === 'applicant') {
     payloads.applicantIdx = index;
   } else if (userType === 'interviewer') {
@@ -40,11 +41,13 @@ const comparePassword = async (userEmail, userPassword) => {
       const { userIdx } = result;
       const userApplicantInfo = await models.applicantInfoTb.findOne({ where: { userIdx } });
       const { applicantIdx } = userApplicantInfo;
-      const token = await createToken(applicantIdx, result.userEmail, result.userType);
+      const token = await createToken(applicantIdx, result.userEmail, result.userType,
+        result.userPosition);
       return { token, applicantIdx };
     } else if (result.userType === 'interviewer') {
       // TODO : 그냥 interviewer 인덱스를 주는 건 어떨까?
-      const token = await createToken(result.userIdx, result.userEmail, result.userType);
+      const token = await createToken(result.userIdx, result.userEmail, result.userType,
+        result.userPosition);
       const { userIdx } = result;
       return { token, userIdx };
     }
@@ -72,11 +75,10 @@ module.exports.onlyApplicant = async (req, res, next) => {
 
 module.exports.onlyInterviewer = async (req, res, next) => {
   try {
-    let err = null;
     // userType 이 'interviewer' 인 요청만 유효함
     // 본인의 applications 에 대해서만 유효함
     if (req.user.userType !== 'interviewer') {
-      err = new Error('Permission denied');
+      const err = new Error('Permission denied');
       err.status = 403;
       throw err;
     }

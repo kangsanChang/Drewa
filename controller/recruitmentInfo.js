@@ -4,7 +4,7 @@ module.exports.postRecruitInfo = async (req, res, next) => {
   try {
     // 새로운 면접 정보 입력함
     const {
-      season, commQuestions, developerQuestions, designerQuestions, deadline, interviewTime,
+      season, commQuestions, developerQuestions, designerQuestions, deadline, interviewTimes,
     } = req.body;
     const appDocResult = await models.recruitmentInfo.findOne({ season }).exec();
     if (appDocResult) {
@@ -18,7 +18,7 @@ module.exports.postRecruitInfo = async (req, res, next) => {
       developerQuestions,
       designerQuestions,
       deadline,
-      interviewTime,
+      interviewTimes,
     };
     const result = await models.recruitmentInfo.create(newData);
     res.r(result);
@@ -30,11 +30,22 @@ module.exports.postRecruitInfo = async (req, res, next) => {
 module.exports.getRecruitInfo = async (req, res, next) => {
   try {
     // 시간순으로 가장 최근에 추가된것만 가져옴
-    const result = await models.recruitmentInfo.find()
+    const result = await models.recruitmentInfo.findOne()
       .sort('-createdAt')
-      .limit(1)
       .exec();
-    res.r(result[0]);
+    if (result === null) {
+      const err = new Error('recruitmentInfo not exits');
+      err.status = 400;
+      throw err;
+    }
+    const questions = result.commQuestions.concat(result[`${req.user.userPosition}Questions`]);
+    const resModel = {
+      season: result.season,
+      deadline: result.deadline,
+      questions,
+      interviewTimes: result.interviewTimes,
+    };
+    res.r(resModel);
   } catch (err) {
     next(err);
   }

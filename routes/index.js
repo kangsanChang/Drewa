@@ -71,8 +71,7 @@ module.exports = (router) => {
     .post();
   router.route('/recruitmentInfo')
     .post(auth, onlyInterviewer, postRecruitInfo)
-    // get 은 퍼블릭 권한으로 아무나 조회 가능
-    .get(getRecruitInfo);
+    .get(auth, getRecruitInfo);
   router.route('/recruitmentInfo/:season')
     .put(auth, onlyInterviewer, putRecruitInfo);
   return router;
