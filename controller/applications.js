@@ -107,7 +107,6 @@ module.exports.getMyApplication = async (req, res, next) => {
       phone: applicantInfoRet.applicantPhone,
       company: applicantInfoRet.applicantOrganization,
       major: applicantInfoRet.applicantMajor,
-      PictureFilename: applicantInfoRet.applicantPictureFilename,
       // From ApplicantDoc
       knownFrom: applicationDocRet.entryRoute,
       portfolioFilename: applicationDocRet.portfolioFilename,
