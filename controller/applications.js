@@ -42,6 +42,8 @@ const updateApplication = async (req) => {
       portfolioFileUrl: data.portfolioFileUrl,
       personalUrl: data.personalUrl,
       answers: data.answers,
+      devAnswers: data.devAnswers,
+      desAnswers: data.desAnswers,
       interviewAvailableTime: data.interviewAvailableTime,
     };
     // DB에 넣어주기
@@ -112,6 +114,8 @@ module.exports.getMyApplication = async (req, res, next) => {
       portfolioFilename: applicationDocRet.portfolioFilename,
       personalUrl: applicationDocRet.personalUrl,
       answers: applicationDocRet.answers,
+      devAnswers: applicationDocRet.devAnswers,
+      desAnswers: applicationDocRet.desAnswers,
       interviewAvailableTimes: applicationDocRet.interviewAvailableTime,
       // From FileUrl
       applicantImageUrl: null,

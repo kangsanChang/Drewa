@@ -38,7 +38,10 @@ module.exports.getRecruitInfo = async (req, res, next) => {
       err.status = 400;
       throw err;
     }
-    const questions = result.commQuestions.concat(result[`${req.user.userPosition}Questions`]);
+    const questions = {};
+    questions.commonQ = result.commQuestions;
+    questions.devQ = result.developerQuestions;
+    questions.desQ = result.designerQuestions;
     const resModel = {
       season: result.season,
       deadline: result.deadline,
