@@ -97,6 +97,8 @@ module.exports.getMyApplication = async (req, res, next) => {
     const { userIdx } = applicantInfoRet;
     const userInfo = await models.userInfoTb.findOne({ where: { userIdx } });
     const userInfoRet = userInfo.dataValues;
+    const applicationData = await models.applicationTb.findOne({ where: { applicantIdx } });
+    const { isSubmit } = applicationData.dataValues;
 
     const result = {
       // From UserInfo
@@ -120,6 +122,8 @@ module.exports.getMyApplication = async (req, res, next) => {
       // From FileUrl
       applicantImageUrl: null,
       applicantPortfolioUrl: null,
+      // isSubmit?
+      isSubmit,
     };
 
     // Get File URL
