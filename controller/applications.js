@@ -23,12 +23,10 @@ const updateApplication = async (req) => {
     const { userIdx } = applicantInfo;
     const data = req.body;
     const { userName, userPosition } = data;
-    // TODO: Date 필드 어떻게 변환할지
-    // data.interviewAvailableTime.forEach((elem, i, arr) => { arr[i] = new Date(elem); });
 
     const applicantData = {
       applicantGender: data.applicantGender,
-      applicantBirthday: new Date(data.applicantBirthday),
+      applicantBirthday: data.applicantBirthday,
       applicantLocation: data.applicantLocation,
       applicantOrganization: data.applicantOrganization,
       applicantMajor: data.applicantMajor,
