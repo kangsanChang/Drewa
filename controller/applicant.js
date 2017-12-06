@@ -51,11 +51,10 @@ module.exports.applicantSignUp = async (req, res, next) => {
       throw err;
     }
 
-    const sInfo = await models.recruitmentInfo.findOne()
+    const { season: userSeason } = await models.recruitmentInfo.findOne()
       .sort('-createdAt')
       .select('season')
       .exec();
-    const { season: userSeason } = sInfo;
     let newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
@@ -94,6 +93,36 @@ module.exports.getAllApplicant = async (req, res, next) => {
   try {
     const allApplicants = await models.userInfoTb.findAll({ where: { userType: 'applicant' } });
     res.r(allApplicants);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports.getApplicantStatus = async (req, res, next) => {
+
+  try {
+    const applicantIdx = Number(req.params.applicantIdx);
+    const {
+      season, deadline, interviewTimes, interviewPlace,
+    } = await models.recruitmentInfo.findOne()
+      .sort('-createdAt')
+      .exec();
+    const applicantStatusData = await models.applicantStatusTb
+      .findOne({ where: { applicantIdx } });
+    const {
+      isSubmit, isApplicationPass, isFinalPass, confirmedInterviewTime,
+    } = applicantStatusData.dataValues;
+    const result = {
+      season,
+      deadline,
+      interviewTimes,
+      interviewPlace,
+      isSubmit,
+      isApplicationPass,
+      isFinalPass,
+      confirmedInterviewTime,
+    };
+    res.r(result);
   } catch (err) {
     next(err);
   }

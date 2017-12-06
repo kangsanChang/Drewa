@@ -1,7 +1,7 @@
 const auth = require('../controller/jwtAuth')().authenticate();
 
 const {
-  applicantSignUp, getAllApplicant,
+  applicantSignUp, getAllApplicant, getApplicantStatus
 } = require('../controller/applicant');
 
 const {
@@ -59,6 +59,10 @@ module.exports = (router) => {
     .post(auth, onlyApplicant, checkSubmit, portfolioUpload, uploadFile)
     // 포트폴리오 삭제
     .delete(auth, onlyApplicant, checkSubmit, removePortfolio);
+
+  // 지원자 상태 가져오기
+  router.route('/applicants/:applicantIdx/status')
+    .get(auth, onlyApplicant, getApplicantStatus);
 
   // 지원서 관련 (면접관) - 면접관 권한 필요
   router.route('/applications')
