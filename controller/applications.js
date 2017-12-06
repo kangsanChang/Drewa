@@ -148,7 +148,6 @@ module.exports.getMyApplication = async (req, res, next) => {
 // 지원자 + 지원서 모두 삭제
 const remover = async (applicantIdx, userEmail) => {
   const t = await models.sequelize.transaction();
-  const data = await models.applicantInfoTb.findOne({ where: { applicantIdx } });
   // 파일 있는지 확인
   const imageFileName = await getFileName('images', applicantIdx);
   const portfolioFileName = await getFileName('portfolios', applicantIdx);
@@ -158,11 +157,10 @@ const remover = async (applicantIdx, userEmail) => {
   if (portfolioFileName) {
     await removeFile(applicantIdx, userEmail, 'portfolios');
   }
-
-  await models.applicantInfoTb.destroy({ where: { applicantIdx }, transaction: t });
-  await models.userInfoTb.destroy(
-    { where: { userIdx: data.dataValues.userIdx }, transaction: t });
   await models.applicationTb.destroy({ where: { applicantIdx }, transaction: t });
+  await models.applicantStatusTb.destroy({ where: { applicantIdx }, transaction: t });
+  await models.userInfoTb.destroy({ where: { userEmail }, transaction: t });
+  await models.applicantInfoTb.destroy({ where: { applicantIdx }, transaction: t });
   await models.applicationDoc.remove({ applicantIdx });
   await t.commit();
 };
@@ -172,8 +170,8 @@ module.exports.removeApplication = async (req, res, next) => {
   try {
     const { applicantIdx } = req.params;
     const { userEmail } = req.user;
-    const result = remover(applicantIdx, userEmail);
-    res.r(result);
+    remover(applicantIdx, userEmail);
+    res.status(204).end();
   } catch (err) {
     next(err);
   }
