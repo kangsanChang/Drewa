@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       applicantBirthday: {
-        type: DataTypes.DATEONLY,
+        type: DataTypes.STRING,
         field: 'applicant_birthday',
       },
       applicantLocation: {
@@ -44,10 +44,6 @@ module.exports = (sequelize, DataTypes) => {
       applicantPictureFilename: {
         type: DataTypes.TEXT,
         field: 'applicant_picture_filename',
-      },
-      applicantInterviewTime: {
-        type: DataTypes.DATE,
-        field: 'applicant_interview_time',
       },
     },
     {

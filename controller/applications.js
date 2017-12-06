@@ -23,12 +23,10 @@ const updateApplication = async (req) => {
     const { userIdx } = applicantInfo;
     const data = req.body;
     const { userName, userPosition } = data;
-    // TODO: Date 필드 어떻게 변환할지
-    // data.interviewAvailableTime.forEach((elem, i, arr) => { arr[i] = new Date(elem); });
 
     const applicantData = {
       applicantGender: data.applicantGender,
-      applicantBirthday: new Date(data.applicantBirthday),
+      applicantBirthday: data.applicantBirthday,
       applicantLocation: data.applicantLocation,
       applicantOrganization: data.applicantOrganization,
       applicantMajor: data.applicantMajor,
@@ -42,6 +40,8 @@ const updateApplication = async (req) => {
       portfolioFileUrl: data.portfolioFileUrl,
       personalUrl: data.personalUrl,
       answers: data.answers,
+      devAnswers: data.devAnswers,
+      desAnswers: data.desAnswers,
       interviewAvailableTime: data.interviewAvailableTime,
     };
     // DB에 넣어주기
@@ -72,7 +72,7 @@ module.exports.postApplication = postApplication;
 module.exports.submitApplication = async (req, res, next) => {
   try {
     await updateApplication(req);
-    await models.applicationTb.update({ isSubmit: true },
+    await models.applicantStatusTb.update({ isSubmit: true },
       { where: { applicantIdx: req.user.applicantIdx } });
     // production 에서는 이메일을 보낸다
     if (global.env === 'production') {
@@ -95,6 +95,9 @@ module.exports.getMyApplication = async (req, res, next) => {
     const { userIdx } = applicantInfoRet;
     const userInfo = await models.userInfoTb.findOne({ where: { userIdx } });
     const userInfoRet = userInfo.dataValues;
+    const applicantStatusData = await models.applicantStatusTb
+      .findOne({ where: { applicantIdx } });
+    const { isSubmit } = applicantStatusData.dataValues;
 
     const result = {
       // From UserInfo
@@ -107,16 +110,19 @@ module.exports.getMyApplication = async (req, res, next) => {
       phone: applicantInfoRet.applicantPhone,
       company: applicantInfoRet.applicantOrganization,
       major: applicantInfoRet.applicantMajor,
-      PictureFilename: applicantInfoRet.applicantPictureFilename,
       // From ApplicantDoc
       knownFrom: applicationDocRet.entryRoute,
       portfolioFilename: applicationDocRet.portfolioFilename,
       personalUrl: applicationDocRet.personalUrl,
       answers: applicationDocRet.answers,
+      devAnswers: applicationDocRet.devAnswers,
+      desAnswers: applicationDocRet.desAnswers,
       interviewAvailableTimes: applicationDocRet.interviewAvailableTime,
       // From FileUrl
       applicantImageUrl: null,
       applicantPortfolioUrl: null,
+      // isSubmit?
+      isSubmit,
     };
 
     // Get File URL

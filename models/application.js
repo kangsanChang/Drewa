@@ -15,11 +15,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         field: 'application_document',
       },
-      isSubmit: {
-        type: DataTypes.BOOLEAN,
-        field: 'is_submit',
-        defaultValue: false,
-      },
     },
     {
       timestamps: true,

@@ -44,18 +44,17 @@ module.exports.applicantSignUp = async (req, res, next) => {
     }
 
     // Email Validation
-    const check = await models.userInfoTb.find({ where: { userEmail } });
+    const check = await models.userInfoTb.findOne({ where: { userEmail } });
     if (check !== null) {
       const err = new Error('User Already Exists');
       err.status = 400;
       throw err;
     }
 
-    const sInfo = await models.recruitmentInfo.findOne()
+    const { season: userSeason } = await models.recruitmentInfo.findOne()
       .sort('-createdAt')
       .select('season')
       .exec();
-    const { season: userSeason } = sInfo;
     let newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
@@ -67,17 +66,18 @@ module.exports.applicantSignUp = async (req, res, next) => {
       { userIdx: result.userIdx }, { transaction: t },
     );
     const { applicantIdx } = applicantRet;
-    const applicationRet = await models.applicationDoc.create({ applicantIdx });
+    const applicationDocData = await models.applicationDoc.create({ applicantIdx });
     newData = {
-      applicantIdx: applicantRet.applicantIdx,
-      applicationDocument: applicationRet._id.toString(),
+      applicantIdx,
+      applicationDocument: applicationDocData._id.toString(),
     };
     await models.applicationTb.create(newData, { transaction: t });
+    await models.applicantStatusTb.create({ applicantIdx }, { transaction: t });
     await t.commit();
-    const token = await auth.createToken(applicantRet.applicantIdx, userEmail, 'applicant');
+    const token = await auth.createToken(applicantIdx, userEmail, 'applicant');
     const resData = {
       token,
-      applicantIdx: applicantRet.applicantIdx,
+      applicantIdx,
     };
     res.r(resData);
   } catch (err) {
@@ -93,6 +93,36 @@ module.exports.getAllApplicant = async (req, res, next) => {
   try {
     const allApplicants = await models.userInfoTb.findAll({ where: { userType: 'applicant' } });
     res.r(allApplicants);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports.getApplicantStatus = async (req, res, next) => {
+
+  try {
+    const applicantIdx = Number(req.params.applicantIdx);
+    const {
+      season, deadline, interviewTimes, interviewPlace,
+    } = await models.recruitmentInfo.findOne()
+      .sort('-createdAt')
+      .exec();
+    const applicantStatusData = await models.applicantStatusTb
+      .findOne({ where: { applicantIdx } });
+    const {
+      isSubmit, isApplicationPass, isFinalPass, confirmedInterviewTime,
+    } = applicantStatusData.dataValues;
+    const result = {
+      season,
+      deadline,
+      interviewTimes,
+      interviewPlace,
+      isSubmit,
+      isApplicationPass,
+      isFinalPass,
+      confirmedInterviewTime,
+    };
+    res.r(result);
   } catch (err) {
     next(err);
   }

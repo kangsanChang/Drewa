@@ -107,9 +107,7 @@ module.exports.getFileUrl =
 //*-----------------
 const helloworld = async (req, res, next) => {
   try {
-    console.log('go to hello world');
     const { file } = req;
-    console.log(file);
     if (!file) {
       const err = new Error('No file!');
       err.status = 400;
@@ -151,11 +149,6 @@ const uploadPic = async (req, res, next) => {
     const upload = await multer(
       { storage, limits: { fileSize: imageMax }, fileFilter: imageFilter },
     ).single('user_image');
-    // upload(req, res, err => {
-    //   if (err) {
-    //     throw err;
-    //   }
-    // });
 
     upload(req, res, (err) => {
       if (err) {

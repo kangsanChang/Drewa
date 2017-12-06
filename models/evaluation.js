@@ -7,33 +7,33 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
       },
-      applicationIdx: {
-        type: DataTypes.INTEGER,
-        field: 'application_idx',
-      },
       interIdx: {
         type: DataTypes.INTEGER,
         field: 'inter_idx',
       },
-      evalDocPoint: {
+      applicationIdx: {
+        type: DataTypes.INTEGER,
+        field: 'application_idx',
+      },
+      applicationPoint: {
         type: DataTypes.INTEGER(2),
-        field: 'eval_doc_point',
+        field: 'application_point',
       },
-      evalDocComment: {
+      applicationComment: {
         type: DataTypes.STRING,
-        field: 'eval_doc_comment',
+        field: 'application_comment',
       },
-      DocPass: {
+      applicationPass: {
         type: DataTypes.BOOLEAN,
-        field: 'doc_pass',
+        field: 'application_pass',
       },
-      evalInterviewPoint: {
+      interviewPoint: {
         type: DataTypes.INTEGER(2),
-        field: 'eval_interview_point',
+        field: 'interview_point',
       },
-      evalInterviewComment: {
+      interviewComment: {
         type: DataTypes.STRING,
-        field: 'eval_interview_comment',
+        field: 'interview_comment',
       },
       finalPass: {
         type: DataTypes.BOOLEAN,
@@ -45,13 +45,10 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'EVALUATION_TB',
       underscored: true,
       comment: '평가 테이블',
-    },
-  );
+    });
   evaluationTb.associate = (models) => {
-    models.applicationTb.hasMany(evaluationTb,
-      { foreignKey: 'applicationIdx' });
-    models.interviewerTb.hasMany(evaluationTb,
-      { foreignKey: 'interIdx' });
+    models.applicationTb.hasMany(evaluationTb, { foreignKey: 'applicationIdx' });
+    models.interviewerTb.hasMany(evaluationTb, { foreignKey: 'interIdx' });
   };
   return evaluationTb;
 };
