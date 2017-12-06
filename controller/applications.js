@@ -72,7 +72,7 @@ module.exports.postApplication = postApplication;
 module.exports.submitApplication = async (req, res, next) => {
   try {
     await updateApplication(req);
-    await models.applicationTb.update({ isSubmit: true },
+    await models.applicantStatusTb.update({ isSubmit: true },
       { where: { applicantIdx: req.user.applicantIdx } });
     // production 에서는 이메일을 보낸다
     if (global.env === 'production') {
@@ -95,8 +95,9 @@ module.exports.getMyApplication = async (req, res, next) => {
     const { userIdx } = applicantInfoRet;
     const userInfo = await models.userInfoTb.findOne({ where: { userIdx } });
     const userInfoRet = userInfo.dataValues;
-    const applicationData = await models.applicationTb.findOne({ where: { applicantIdx } });
-    const { isSubmit } = applicationData.dataValues;
+    const applicantStatusData = await models.applicantStatusTb
+      .findOne({ where: { applicantIdx } });
+    const { isSubmit } = applicantStatusData.dataValues;
 
     const result = {
       // From UserInfo

@@ -44,7 +44,7 @@ module.exports.applicantSignUp = async (req, res, next) => {
     }
 
     // Email Validation
-    const check = await models.userInfoTb.find({ where: { userEmail } });
+    const check = await models.userInfoTb.findOne({ where: { userEmail } });
     if (check !== null) {
       const err = new Error('User Already Exists');
       err.status = 400;
@@ -67,17 +67,18 @@ module.exports.applicantSignUp = async (req, res, next) => {
       { userIdx: result.userIdx }, { transaction: t },
     );
     const { applicantIdx } = applicantRet;
-    const applicationRet = await models.applicationDoc.create({ applicantIdx });
+    const applicationDocData = await models.applicationDoc.create({ applicantIdx });
     newData = {
-      applicantIdx: applicantRet.applicantIdx,
-      applicationDocument: applicationRet._id.toString(),
+      applicantIdx,
+      applicationDocument: applicationDocData._id.toString(),
     };
     await models.applicationTb.create(newData, { transaction: t });
+    await models.applicantStatusTb.create({ applicantIdx }, { transaction: t });
     await t.commit();
-    const token = await auth.createToken(applicantRet.applicantIdx, userEmail, 'applicant');
+    const token = await auth.createToken(applicantIdx, userEmail, 'applicant');
     const resData = {
       token,
-      applicantIdx: applicantRet.applicantIdx,
+      applicantIdx,
     };
     res.r(resData);
   } catch (err) {

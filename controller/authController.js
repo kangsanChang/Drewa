@@ -104,12 +104,11 @@ module.exports.postLogin = async (req, res, next) => {
 
 const verifyDeadline = async () => {
   try {
-    const result = await models.recruitmentInfo.find()
+    const result = await models.recruitmentInfo.findOne()
       .sort('-createdAt')
-      .limit(1)
       .exec();
     const now = new Date().toLocaleString();
-    const time = new Date(result[0].deadline).toLocaleString();
+    const time = new Date(result.deadline).toLocaleString();
     return now > time; // 시간이 남았으면 true 만료되었으면 false
   } catch (err) {
     throw err;
@@ -133,10 +132,10 @@ module.exports.checkTime = async (req, res, next) => {
 
 module.exports.checkSubmit = async (req, res, next) => {
   try {
-    const result = await models.applicationTb.findOne({
+    const { isSubmit } = await models.applicantStatusTb.findOne({
       where: { applicantIdx: req.user.applicantIdx },
     });
-    if (result.isSubmit) {
+    if (isSubmit) {
       const err = new Error('이미 제출하셨습니다!');
       err.status = 400;
       throw err;

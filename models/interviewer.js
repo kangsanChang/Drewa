@@ -21,8 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     },
   );
   interviewersTb.associate = (models) => {
-    models.userInfoTb.hasOne(interviewersTb,
-      { foreignKey: 'userIdx' });
+    models.userInfoTb.hasOne(interviewersTb, { foreignKey: 'userIdx' });
   };
   return interviewersTb;
 };

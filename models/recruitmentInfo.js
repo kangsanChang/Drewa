@@ -13,6 +13,7 @@ const recruitmentInfoSchema = new mongoose.Schema(
         times: [String],
       },
     ],
+    interviewPlace: [String],
   }, {
     timestamps: { createdAt: 'createdAt' },
   },

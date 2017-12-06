@@ -106,9 +106,6 @@ describe('Test for REST API', function() {
             done();
           });
       });
-
-      // TODO: PASSWORD 한 글자라도 정상처리함. 최소 4 자.. 같은 규칙이 있었으면
-
       // Remove sample data for test
       after(async () => { await remover(testDataIdx, testData.userEmail); });
     });

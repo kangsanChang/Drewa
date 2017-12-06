@@ -45,10 +45,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         field: 'applicant_picture_filename',
       },
-      applicantInterviewTime: {
-        type: DataTypes.DATE,
-        field: 'applicant_interview_time',
-      },
     },
     {
       timestamps: true,
