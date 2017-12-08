@@ -21,12 +21,13 @@ const verifyRecaptcha = (recaptchaToken) => {
 module.exports.interviewerSignUp = async (req, res, next) => {
   const t = await models.sequelize.transaction();
   try {
-    if (!req.body.userEmail || !req.body.userPassword) {
+    const { userEmail, userPassword, userName, userPosition, recaptchaToken } = req.body;
+
+    if (!userEmail || !userPassword) {
       const err = new Error('There is an empty field');
       err.status = 400;
       throw err;
     }
-    const { userEmail, userPassword, recaptchaToken } = req.body;
 
     // Verification reCAPTCHA
     const verified = await verifyRecaptcha(recaptchaToken);
@@ -40,9 +41,8 @@ module.exports.interviewerSignUp = async (req, res, next) => {
     // invitationCode Validation
     const { season, invitationCode } = await models.recruitmentInfo.findOne()
       .sort('-createdAt')
-      .select('season')
+      .select('season invitationCode')
       .exec();
-
     if (invitationCode !== req.body.invitationCode) {
       const err = new Error('invitation code is not matching');
       err.status = 400;
@@ -62,6 +62,8 @@ module.exports.interviewerSignUp = async (req, res, next) => {
       userType: 'interviewer',
       userSeason: season,
       userEmail,
+      userName,
+      userPosition,
     };
     const { userIdx } = await models.userInfoTb.create(data, { transaction: t });
     const { interviewerIdx } = await models.interviewerTb.create({ userIdx }, { transaction: t });
@@ -71,7 +73,6 @@ module.exports.interviewerSignUp = async (req, res, next) => {
       token,
       interviewerIdx,
     };
-    console.log('create interviewer in server successfully \n', token, interviewerIdx);
     res.r(resData);
   } catch (err) {
     if (err.name === 'SequelizeValidationError') {

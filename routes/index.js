@@ -21,9 +21,16 @@ const {
   postRecruitInfo, putRecruitInfo, getRecruitInfo,
 } = require('../controller/recruitmentInfo');
 
+const {
+  interviewerSignUp,
+} = require('../controller/interviewer');
+
 // /api/ 하위로 들어옴
 
 module.exports = (router) => {
+  // 임시(면접관 가입)
+  router.route('/interviewer')
+    .post(interviewerSignUp);
   // 로그인
   router.route('/login')
   // 로그인, 토큰 발급 (면접관, 지원자)
