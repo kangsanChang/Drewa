@@ -1,19 +1,19 @@
 module.exports = (sequelize, DataTypes) => {
   const evaluationTb = sequelize.define('evaluationTb',
     {
-      evalIdx: {
+      evaluationIdx: {
         type: DataTypes.INTEGER,
-        field: 'eval_idx',
+        field: 'evaluation_idx',
         autoIncrement: true,
         primaryKey: true,
       },
-      interIdx: {
+      interviewerIdx: {
         type: DataTypes.INTEGER,
-        field: 'inter_idx',
+        field: 'interviewer_idx',
       },
-      applicationIdx: {
+      applicantIdx: {
         type: DataTypes.INTEGER,
-        field: 'application_idx',
+        field: 'applicant_idx',
       },
       applicationPoint: {
         type: DataTypes.INTEGER(2),
@@ -47,8 +47,8 @@ module.exports = (sequelize, DataTypes) => {
       comment: '평가 테이블',
     });
   evaluationTb.associate = (models) => {
-    models.applicationTb.hasMany(evaluationTb, { foreignKey: 'applicationIdx' });
-    models.interviewerTb.hasMany(evaluationTb, { foreignKey: 'interIdx' });
+    models.interviewerTb.hasMany(evaluationTb, { foreignKey: 'interviewerIdx' });
+    models.applicantInfoTb.hasMany(evaluationTb, { foreignKey: 'applicantIdx' });
   };
   return evaluationTb;
 };

@@ -157,7 +157,6 @@ const remover = async (applicantIdx, userEmail) => {
   if (portfolioFileName) {
     await removeFile(applicantIdx, userEmail, 'portfolios');
   }
-  await models.applicationTb.destroy({ where: { applicantIdx }, transaction: t });
   await models.applicantStatusTb.destroy({ where: { applicantIdx }, transaction: t });
   await models.userInfoTb.destroy({ where: { userEmail }, transaction: t });
   await models.applicantInfoTb.destroy({ where: { applicantIdx }, transaction: t });

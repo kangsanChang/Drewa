@@ -41,7 +41,7 @@ const comparePassword = async (userEmail, userPassword) => {
       const token = await createToken(applicantIdx, result.userEmail, result.userType);
       return { token, applicantIdx };
     } else if (result.userType === 'interviewer') {
-      const { interviewerIdx } = await models.interviewersTb.findOne({ where: { userIdx } });
+      const { interviewerIdx } = await models.interviewerTb.findOne({ where: { userIdx } });
       const token = await createToken(interviewerIdx, result.userEmail, result.userType);
       return { token, interviewerIdx };
     }

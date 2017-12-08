@@ -1,9 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
-  const interviewersTb = sequelize.define('interviewerTb',
+  const interviewerTb = sequelize.define('interviewerTb',
     {
       interviewerIdx: {
         type: DataTypes.INTEGER,
-        field: 'inter_idx',
+        field: 'interviewer_idx',
         autoIncrement: true,
         primaryKey: true,
       },
@@ -20,8 +20,8 @@ module.exports = (sequelize, DataTypes) => {
       comment: '면접관 정보 테이블',
     },
   );
-  interviewersTb.associate = (models) => {
-    models.userInfoTb.hasOne(interviewersTb, { foreignKey: 'userIdx' });
+  interviewerTb.associate = (models) => {
+    models.userInfoTb.hasOne(interviewerTb, { foreignKey: 'userIdx' });
   };
-  return interviewersTb;
+  return interviewerTb;
 };

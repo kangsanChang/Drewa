@@ -64,7 +64,7 @@ module.exports.interviewerSignUp = async (req, res, next) => {
       userEmail,
     };
     const { userIdx } = await models.userInfoTb.create(data, { transaction: t });
-    const { interviewerIdx } = await models.interviewersTb.create({ userIdx }, { transaction: t });
+    const { interviewerIdx } = await models.interviewerTb.create({ userIdx }, { transaction: t });
     await t.commit();
     const token = await auth.createToken(interviewerIdx, userEmail, 'interviewer');
     const resData = {
