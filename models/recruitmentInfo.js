@@ -14,6 +14,7 @@ const recruitmentInfoSchema = new mongoose.Schema(
       },
     ],
     interviewPlace: [String],
+    invitationCode: String,
   }, {
     timestamps: { createdAt: 'createdAt' },
   },

@@ -3,14 +3,12 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const models = require('../models');
 
-const createToken = async (index, userEmail, userType, userPosition) => {
-  // TODO : 토큰 PAYLOADS 개선하자
-  const payloads = { userEmail, userType, userPosition };
+const createToken = async (index, userEmail, userType) => {
+  const payloads = { userEmail, userType };
   if (userType === 'applicant') {
     payloads.applicantIdx = index;
   } else if (userType === 'interviewer') {
-    // TODO : 그냥 interveiwer 인덱스를 주는 건 어떨까?
-    payloads.userIdx = index;
+    payloads.interviewerIdx = index;
   }
   const token = await jwt.sign(payloads, config.auth.SECRET_KEY,
     { expiresIn: config.auth.EXPIRES });
@@ -36,20 +34,16 @@ const comparePassword = async (userEmail, userPassword) => {
       err.status = 400;
       throw err;
     }
+    const { userIdx } = result;
     // response 를 index 와 함꼐 줌
     if (result.userType === 'applicant') {
-      const { userIdx } = result;
-      const userApplicantInfo = await models.applicantInfoTb.findOne({ where: { userIdx } });
-      const { applicantIdx } = userApplicantInfo;
-      const token = await createToken(applicantIdx, result.userEmail, result.userType,
-        result.userPosition);
+      const { applicantIdx } = await models.applicantInfoTb.findOne({ where: { userIdx } });
+      const token = await createToken(applicantIdx, result.userEmail, result.userType);
       return { token, applicantIdx };
     } else if (result.userType === 'interviewer') {
-      // TODO : 그냥 interviewer 인덱스를 주는 건 어떨까?
-      const token = await createToken(result.userIdx, result.userEmail, result.userType,
-        result.userPosition);
-      const { userIdx } = result;
-      return { token, userIdx };
+      const { interviewerIdx } = await models.interviewersTb.findOne({ where: { userIdx } });
+      const token = await createToken(interviewerIdx, result.userEmail, result.userType);
+      return { token, interviewerIdx };
     }
   } catch (err) {
     throw err;

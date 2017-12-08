@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
   const interviewersTb = sequelize.define('interviewerTb',
     {
-      interIdx: {
+      interviewerIdx: {
         type: DataTypes.INTEGER,
         field: 'inter_idx',
         autoIncrement: true,
