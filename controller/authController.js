@@ -3,14 +3,12 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const models = require('../models');
 
-const createToken = async (index, userEmail, userType, userPosition) => {
-  // TODO : 토큰 PAYLOADS 개선하자
-  const payloads = { userEmail, userType, userPosition };
+const createToken = async (index, userEmail, userType) => {
+  const payloads = { userEmail, userType };
   if (userType === 'applicant') {
     payloads.applicantIdx = index;
   } else if (userType === 'interviewer') {
-    // TODO : 그냥 interveiwer 인덱스를 주는 건 어떨까?
-    payloads.userIdx = index;
+    payloads.interviewerIdx = index;
   }
   const token = await jwt.sign(payloads, config.auth.SECRET_KEY,
     { expiresIn: config.auth.EXPIRES });
@@ -18,43 +16,6 @@ const createToken = async (index, userEmail, userType, userPosition) => {
 };
 
 module.exports.createToken = createToken;
-
-// TODO : boolean으로 주는건 어떄
-const comparePassword = async (userEmail, userPassword) => {
-  // 비밀번호 비교 후 token 발급
-  try {
-    const result = await models.userInfoTb.findOne({ where: { userEmail } });
-    if (!result) {
-      const err = new Error('Email not exist');
-      err.status = 400;
-      throw err;
-    }
-    // Password Matching
-    const isMatch = await bcrypt.compare(userPassword, result.userPassword);
-    if (!isMatch) {
-      const err = new Error('Password not match');
-      err.status = 400;
-      throw err;
-    }
-    // response 를 index 와 함꼐 줌
-    if (result.userType === 'applicant') {
-      const { userIdx } = result;
-      const userApplicantInfo = await models.applicantInfoTb.findOne({ where: { userIdx } });
-      const { applicantIdx } = userApplicantInfo;
-      const token = await createToken(applicantIdx, result.userEmail, result.userType,
-        result.userPosition);
-      return { token, applicantIdx };
-    } else if (result.userType === 'interviewer') {
-      // TODO : 그냥 interviewer 인덱스를 주는 건 어떨까?
-      const token = await createToken(result.userIdx, result.userEmail, result.userType,
-        result.userPosition);
-      const { userIdx } = result;
-      return { token, userIdx };
-    }
-  } catch (err) {
-    throw err;
-  }
-};
 
 module.exports.onlyApplicant = async (req, res, next) => {
   try {
@@ -90,13 +51,28 @@ module.exports.onlyInterviewer = async (req, res, next) => {
 
 module.exports.postLogin = async (req, res, next) => {
   try {
-    if (!req.body.userEmail || !req.body.userPassword) {
+    const { userEmail, userPassword } = req.body;
+    if (!userEmail || !userPassword) {
       const err = new Error('There is an empty field');
       err.status = 400;
       throw err;
     }
-    const data = await comparePassword(req.body.userEmail, req.body.userPassword);
-    res.r(data);
+    const userInfoData = await models.userInfoTb.findOne({ where: { userEmail } });
+    if (!userInfoData) { return res.status(400).end('userEmail not exist'); }
+
+    const isPasswordMatch = await bcrypt.compare(userPassword, userInfoData.userPassword);
+    if (!isPasswordMatch) { return res.status(400).end('password not matching'); }
+
+    const { userIdx, userType } = userInfoData;
+    if (userType === 'applicant') {
+      const { applicantIdx } = await models.applicantInfoTb.findOne({ where: { userIdx } });
+      const token = await createToken(applicantIdx, userEmail, userType);
+      res.r({ token, applicantIdx });
+    } else if (userType === 'interviewer') {
+      const { interviewerIdx } = await models.interviewerTb.findOne({ where: { userIdx } });
+      const token = await createToken(interviewerIdx, userEmail, userType);
+      res.r({ token, interviewerIdx });
+    }
   } catch (err) {
     next(err);
   }

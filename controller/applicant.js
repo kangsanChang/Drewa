@@ -71,7 +71,6 @@ module.exports.applicantSignUp = async (req, res, next) => {
       applicantIdx,
       applicationDocument: applicationDocData._id.toString(),
     };
-    await models.applicationTb.create(newData, { transaction: t });
     await models.applicantStatusTb.create({ applicantIdx }, { transaction: t });
     await t.commit();
     const token = await auth.createToken(applicantIdx, userEmail, 'applicant');
