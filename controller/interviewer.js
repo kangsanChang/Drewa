@@ -19,7 +19,8 @@ const verifyRecaptcha = (recaptchaToken) => {
 };
 
 module.exports.interviewerSignUp = async (req, res, next) => {
-  const t = await models.sequelize.transaction();
+  // 트랜젝션 없어서 삭제함
+  // const t = await models.sequelize.transaction();
   try {
     if (!req.body.userEmail || !req.body.userPassword) {
       const err = new Error('There is an empty field');
@@ -63,21 +64,22 @@ module.exports.interviewerSignUp = async (req, res, next) => {
       userSeason: season,
       userEmail,
     };
-    const { userIdx } = await models.userInfoTb.create(data, { transaction: t });
-    const { interviewerIdx } = await models.interviewerTb.create({ userIdx }, { transaction: t });
-    await t.commit();
-    const token = await auth.createToken(interviewerIdx, userEmail, 'interviewer');
+    const { userIdx } = await models.userInfoTb.create(data);
+    // const { userIdx } = await models.userInfoTb.create(data, { transaction: t });
+    // const { interviewerIdx } = await models.interviewerTb.create({ userIdx }, { transaction: t });
+    // await t.commit();
+    const token = await auth.createToken(userIdx, userEmail, 'interviewer');
     const resData = {
       token,
-      interviewerIdx,
+      userIdx,
     };
-    console.log('create interviewer in server successfully \n', token, interviewerIdx);
+    console.log('create interviewer in server successfully \n', token, userIdx);
     res.r(resData);
   } catch (err) {
     if (err.name === 'SequelizeValidationError') {
       err.status = 400;
     }
-    await t.rollback();
+    // await t.rollback();
     next(err);
   }
 };

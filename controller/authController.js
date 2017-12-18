@@ -4,12 +4,7 @@ const bcrypt = require('bcrypt');
 const models = require('../models');
 
 const createToken = async (index, userEmail, userType) => {
-  const payloads = { userEmail, userType };
-  if (userType === 'applicant') {
-    payloads.applicantIdx = index;
-  } else if (userType === 'interviewer') {
-    payloads.interviewerIdx = index;
-  }
+  const payloads = { index, userEmail, userType };
   const token = await jwt.sign(payloads, config.auth.SECRET_KEY,
     { expiresIn: config.auth.EXPIRES });
   return token;
@@ -64,15 +59,8 @@ module.exports.postLogin = async (req, res, next) => {
     if (!isPasswordMatch) { return res.status(400).end('password not matching'); }
 
     const { userIdx, userType } = userInfoData;
-    if (userType === 'applicant') {
-      const { applicantIdx } = await models.applicantInfoTb.findOne({ where: { userIdx } });
-      const token = await createToken(applicantIdx, userEmail, userType);
-      res.r({ token, applicantIdx });
-    } else if (userType === 'interviewer') {
-      const { interviewerIdx } = await models.interviewerTb.findOne({ where: { userIdx } });
-      const token = await createToken(interviewerIdx, userEmail, userType);
-      res.r({ token, interviewerIdx });
-    }
+    const token = await createToken(userIdx, userEmail, userType);
+    res.r({ token, userIdx });
   } catch (err) {
     next(err);
   }
