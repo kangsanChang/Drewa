@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         field: 'applicant_idx',
       },
+      confirmedInterviewTime: {
+        type: DataTypes.DATE,
+        field: 'confirmed_interview_time',
+      },
       isSubmit: {
         type: DataTypes.BOOLEAN,
         field: 'is_submit',
@@ -23,10 +27,6 @@ module.exports = (sequelize, DataTypes) => {
       isFinalPass: {
         type: DataTypes.BOOLEAN,
         field: 'is_final_pass',
-      },
-      confirmedInterviewTime: {
-        type: DataTypes.DATE,
-        field: 'confirmed_interview_time',
       },
     },
     {
