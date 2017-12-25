@@ -7,15 +7,32 @@ const recruitmentInfoSchema = new mongoose.Schema(
     commQuestions: [String],
     developerQuestions: [String],
     designerQuestions: [String],
-    start: Date,
-    deadline: Date,
-    interviewTimes: [
+    applicationPeriod: [Date],
+    interviewSchedule: [
       {
         date: String,
+        place: String,
         times: [String],
       },
     ],
-    interviewPlace: [String],
+    interviewGroup: [
+      {
+        interviewDate: String,
+        interviewTime: String,
+        interviewees: [String],
+      },
+    ],
+    mainTitle: String,
+    mainDescription: String,
+    mainPosterUrl: String,
+    infoMessages: {
+      submitted: String,
+      notSubmitted: String,
+      applicationAccept: String,
+      applicationReject: String,
+      finalAccept: String,
+      finalReject: String,
+    },
   }, {
     timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
   },

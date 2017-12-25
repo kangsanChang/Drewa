@@ -50,7 +50,7 @@ module.exports.applicantSignUp = async (req, res, next) => {
       .sort('-createdAt')
       .select('season')
       .exec();
-    let newData = {
+    const newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
       userSeason,
@@ -61,11 +61,8 @@ module.exports.applicantSignUp = async (req, res, next) => {
       { userIdx: result.userIdx }, { transaction: t },
     );
     const { applicantIdx } = applicantRet;
-    const applicationDocData = await models.applicationDoc.create({ applicantIdx });
-    newData = {
-      applicantIdx,
-      applicationDocument: applicationDocData._id.toString(),
-    };
+    await models.applicationDoc.create({ applicantIdx });
+    await models.applicantEvaluation.create({ applicantIdx });
     await models.applicantStatusTb.create({ applicantIdx }, { transaction: t });
     await t.commit();
     const token = await auth.createToken(applicantIdx, userEmail, 'applicant');
@@ -97,7 +94,7 @@ module.exports.getApplicantStatus = async (req, res, next) => {
   try {
     const applicantIdx = Number(req.params.applicantIdx);
     const {
-      season, deadline, interviewTimes, interviewPlace,
+      season, applicationPeriod, interviewSchedule, interviewPlace,
     } = await models.recruitmentInfo.findOne()
       .sort('-createdAt')
       .exec();
@@ -108,8 +105,8 @@ module.exports.getApplicantStatus = async (req, res, next) => {
     } = applicantStatusData.dataValues;
     const result = {
       season,
-      deadline,
-      interviewTimes,
+      applicationPeriod,
+      interviewSchedule,
       interviewPlace,
       isSubmit,
       isApplicationPass,

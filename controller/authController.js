@@ -78,11 +78,11 @@ module.exports.postLogin = async (req, res, next) => {
 
 const verifyDeadline = async () => {
   try {
-    const result = await models.recruitmentInfo.findOne()
+    const { applicationPeriod } = await models.recruitmentInfo.findOne()
       .sort('-createdAt')
       .exec();
     const now = new Date().toLocaleString();
-    const time = new Date(result.deadline).toLocaleString();
+    const time = new Date(applicationPeriod[1]).toLocaleString();
     return now > time; // 시간이 남았으면 true 만료되었으면 false
   } catch (err) {
     throw err;

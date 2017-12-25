@@ -18,7 +18,7 @@ const bcrypt = require('bcrypt');
 
 fs.readdirSync(__dirname)
   .filter(file => (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js') &&
-    (file !== 'applicationDoc.js') && (file !== 'recruitmentInfo.js'))
+    (file !== 'applicationDoc.js') && (file !== 'applicantEvaluation.js') && (file !== 'recruitmentInfo.js'))
   .forEach((file) => {
     const model = sequelize.import(path.join(__dirname, file));
     db[model.name] = model;
@@ -35,6 +35,7 @@ db.Sequelize = Sequelize;
 
 // MongoDB Model export
 db.applicationDoc = require('./applicationDoc');
+db.applicantEvaluation = require('./applicantEvaluation');
 db.recruitmentInfo = require('./recruitmentInfo');
 
 // MongoDB Initializing
