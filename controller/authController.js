@@ -8,7 +8,7 @@ const createToken = async (index, userEmail, userType) => {
   if (userType === 'applicant') {
     payloads.applicantIdx = index;
   } else if (userType === 'interviewer') {
-    payloads.interviewerIdx = index;
+    payloads.userIdx = index;
   }
   const token = await jwt.sign(payloads, config.auth.SECRET_KEY,
     { expiresIn: config.auth.EXPIRES });
@@ -20,8 +20,6 @@ module.exports.createToken = createToken;
 module.exports.onlyApplicant = async (req, res, next) => {
   try {
     let err = null;
-    // userType 이 'applicant' 인 요청만 유효함
-    // 본인의 applications 에 대해서만 유효함
     if (req.user.userType !== 'applicant' ||
       req.user.applicantIdx !== Number(req.params.applicantIdx)) {
       err = new Error('Permission denied');
@@ -36,8 +34,6 @@ module.exports.onlyApplicant = async (req, res, next) => {
 
 module.exports.onlyInterviewer = async (req, res, next) => {
   try {
-    // userType 이 'interviewer' 인 요청만 유효함
-    // 본인의 applications 에 대해서만 유효함
     if (req.user.userType !== 'interviewer') {
       const err = new Error('Permission denied');
       err.status = 403;
@@ -69,9 +65,11 @@ module.exports.postLogin = async (req, res, next) => {
       const token = await createToken(applicantIdx, userEmail, userType);
       res.r({ token, applicantIdx });
     } else if (userType === 'interviewer') {
-      const { interviewerIdx } = await models.interviewerTb.findOne({ where: { userIdx } });
-      const token = await createToken(interviewerIdx, userEmail, userType);
-      res.r({ token, interviewerIdx });
+      const token = await createToken(userIdx, userEmail, userType);
+      res.r({ token, userIdx, userType });
+    } else if (userType === 'admin') {
+      const token = await createToken('', userEmail, userType);
+      res.r({ token, userType });
     }
   } catch (err) {
     next(err);
