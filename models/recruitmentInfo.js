@@ -3,9 +3,11 @@ const mongoose = require('mongoose');
 const recruitmentInfoSchema = new mongoose.Schema(
   {
     season: Number,
+    invitationCode: String,
     commQuestions: [String],
     developerQuestions: [String],
     designerQuestions: [String],
+    start: Date,
     deadline: Date,
     interviewTimes: [
       {
@@ -14,9 +16,8 @@ const recruitmentInfoSchema = new mongoose.Schema(
       },
     ],
     interviewPlace: [String],
-    invitationCode: String,
   }, {
-    timestamps: { createdAt: 'createdAt' },
+    timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
   },
 );
 
