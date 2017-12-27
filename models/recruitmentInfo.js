@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 const recruitmentInfoSchema = new mongoose.Schema(
   {
     season: Number,
+    isFinished: {
+      type: Boolean,
+      default: false,
+    },
     invitationCode: String,
     commQuestions: [String],
     developerQuestions: [String],

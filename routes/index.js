@@ -18,7 +18,7 @@ const {
 } = require('../controller/fileUpload');
 
 const {
-  postRecruitInfo, putRecruitInfo, getRecruitInfo,
+  getAllRecruitmentSeason, postRecruitInfo, putRecruitInfo, getRecruitInfo,
 } = require('../controller/recruitmentInfo');
 
 const {
@@ -80,10 +80,11 @@ module.exports = (router) => {
     .get()
     // 특정 지원서 평가한것 보내기
     .post();
-  router.route('/recruitmentInfo')
-    .post(auth, onlyInterviewer, postRecruitInfo)
-    .get(auth, getRecruitInfo);
-  router.route('/recruitmentInfo/:season')
-    .put(auth, onlyInterviewer, putRecruitInfo);
+  router.route('/recruitmentinfo/:season')
+    .get(auth, getRecruitInfo)
+    .put(auth, putRecruitInfo);
+  router.route('/recruitmentinfo')
+    .post(auth, postRecruitInfo)
+    .get(auth, getAllRecruitmentSeason);
   return router;
 };

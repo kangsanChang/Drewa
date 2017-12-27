@@ -1,10 +1,20 @@
 const models = require('../models');
 
+module.exports.getAllRecruitmentSeason = async (req, res, next) => {
+  try {
+    const seasons = await models.recruitmentInfo.find().select('season isFinished');
+    res.r(seasons);
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports.postRecruitInfo = async (req, res, next) => {
   try {
     // 새로운 면접 정보 입력함
     const {
-      season, commQuestions, developerQuestions, designerQuestions, applicationPeriod, interviewSchedule,
+      season, commQuestions, developerQuestions, designerQuestions, applicationPeriod,
+      interviewSchedule,
     } = req.body;
     const appDocResult = await models.recruitmentInfo.findOne({ season }).exec();
     if (appDocResult) {
@@ -29,10 +39,11 @@ module.exports.postRecruitInfo = async (req, res, next) => {
 
 module.exports.getRecruitInfo = async (req, res, next) => {
   try {
+    const { params } = req;
     const {
       commQuestions, developerQuestions, designerQuestions, season, applicationPeriod,
       interviewSchedule,
-    } = await models.recruitmentInfo.findOne().sort('-createdAt').exec();
+    } = await models.recruitmentInfo.findOne().where({ season: params.season }).exec();
     const questions = {};
     questions.commonQ = commQuestions;
     questions.devQ = developerQuestions;
