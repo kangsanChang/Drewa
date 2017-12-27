@@ -50,7 +50,12 @@ module.exports.getRecruitInfo = async (req, res, next) => {
       });
     } else {
       const ret = await models.recruitmentInfo.findOne().where({ season: params.season }).exec();
-      res.r(ret);
+      // mongoose query 로 받아온 object 에 바로 delete 불가능
+      const info = ret.toObject();
+      delete info._id;
+      delete info.createdAt;
+      delete info.updatedAt;
+      res.r(info);
     }
   } catch (err) {
     next(err);

@@ -14,6 +14,10 @@ const recruitmentInfoSchema = new mongoose.Schema(
       designer: [String],
     },
     applicationPeriod: [Date],
+    announcementDate: {
+      application: Date,
+      final: Date,
+    },
     interviewSchedule: [
       {
         date: String,
