@@ -13,8 +13,7 @@ module.exports.postRecruitInfo = async (req, res, next) => {
   try {
     // 새로운 면접 정보 입력함
     const {
-      season, commQuestions, developerQuestions, designerQuestions, applicationPeriod,
-      interviewSchedule,
+      season, questions, applicationPeriod, interviewSchedule,
     } = req.body;
     const appDocResult = await models.recruitmentInfo.findOne({ season }).exec();
     if (appDocResult) {
@@ -24,9 +23,7 @@ module.exports.postRecruitInfo = async (req, res, next) => {
     }
     const newData = {
       season: Number(season),
-      commQuestions,
-      developerQuestions,
-      designerQuestions,
+      questions,
       applicationPeriod,
       interviewSchedule,
     };
@@ -39,19 +36,22 @@ module.exports.postRecruitInfo = async (req, res, next) => {
 
 module.exports.getRecruitInfo = async (req, res, next) => {
   try {
+    // admin 이 이전 지원정보 보는 경우랑 지원자들이 보는 경우 둘다 사용
+    // admin 은 param 으로 season 을 줘서 찾게함
+    // 지원자들은 params 의 season 이 'now' - isFinished 가 false(현재 모집중인 시즌)인 정보를 가져오도록 함.
     const { params } = req;
-    const {
-      commQuestions, developerQuestions, designerQuestions, season, applicationPeriod,
-      interviewSchedule,
-    } = await models.recruitmentInfo.findOne().where({ season: params.season }).exec();
-    const questions = {};
-    questions.commonQ = commQuestions;
-    questions.devQ = developerQuestions;
-    questions.desQ = designerQuestions;
-    const result = {
-      season, applicationPeriod, questions, interviewSchedule,
-    };
-    res.r(result);
+    if (params.season === 'now') {
+      const {
+        questions, season, applicationPeriod, interviewSchedule,
+      } = await models.recruitmentInfo.findOne().where({ isFinished: false }).exec();
+
+      res.r({
+        season, applicationPeriod, interviewSchedule, questions,
+      });
+    } else {
+      const ret = await models.recruitmentInfo.findOne().where({ season: params.season }).exec();
+      res.r(ret);
+    }
   } catch (err) {
     next(err);
   }

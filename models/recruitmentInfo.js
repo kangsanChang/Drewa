@@ -8,9 +8,11 @@ const recruitmentInfoSchema = new mongoose.Schema(
       default: false,
     },
     invitationCode: String,
-    commQuestions: [String],
-    developerQuestions: [String],
-    designerQuestions: [String],
+    questions: {
+      common: [String],
+      developer: [String],
+      designer: [String],
+    },
     applicationPeriod: [Date],
     interviewSchedule: [
       {
