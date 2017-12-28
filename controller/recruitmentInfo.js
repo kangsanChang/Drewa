@@ -12,23 +12,34 @@ module.exports.getAllRecruitmentSeason = async (req, res, next) => {
 module.exports.postRecruitInfo = async (req, res, next) => {
   try {
     // 새로운 면접 정보 입력함
-    const {
-      season, questions, applicationPeriod, interviewSchedule,
-    } = req.body;
-    const appDocResult = await models.recruitmentInfo.findOne({ season }).exec();
-    if (appDocResult) {
-      const err = new Error('Duplicated Season');
-      err.status = 400;
-      throw err;
+    const { settingForm } = req.body;
+    const onSeasonCheck = await models.recruitmentInfo.findOne()
+      .where({ isFinished: false }).exec();
+    if (onSeasonCheck) {
+      // 현재 모집중인 시즌이 있는 경우
+      // post 보낸 season 과 동일하면 update 하고 다르면 에러
+      if (onSeasonCheck.season.toString() === settingForm.season) {
+        // update
+        await models.recruitmentInfo.findOneAndUpdate({ season: settingForm.season }, settingForm);
+        res.sendStatus(200);
+      } else {
+        // error : 현재 모집중인 정보가 있지만 다른 시즌을 생성하려는 경우
+        const err = new Error('on recruitment now');
+        err.status = 400;
+        throw err;
+      }
+    } else {
+      // 이전에 생성했던 시즌인지 중복검사
+      const checkDup = await models.recruitmentInfo.findOne().where({ season: settingForm.season });
+      if (checkDup) {
+        const err = new Error('Duplicated Error');
+        err.status = 400;
+        throw err;
+      }
+      // create new
+      await models.recruitmentInfo.create(settingForm);
+      res.sendStatus(200);
     }
-    const newData = {
-      season: Number(season),
-      questions,
-      applicationPeriod,
-      interviewSchedule,
-    };
-    const result = await models.recruitmentInfo.create(newData);
-    res.r(result);
   } catch (err) {
     next(err);
   }
@@ -48,6 +59,18 @@ module.exports.getRecruitInfo = async (req, res, next) => {
       res.r({
         season, applicationPeriod, interviewSchedule, questions,
       });
+    } else if (params.season === 'prev') {
+      const ret = await models.recruitmentInfo.findOne()
+        .where({ isFinished: true })
+        .sort('-createdAt')
+        .exec();
+      // mongoose query 로 받아온 object 에 바로 delete 불가능
+      const info = ret.toObject();
+      delete info._id;
+      delete info.createdAt;
+      delete info.updatedAt;
+      info.season = '';
+      res.r(info);
     } else {
       const ret = await models.recruitmentInfo.findOne().where({ season: params.season }).exec();
       // mongoose query 로 받아온 object 에 바로 delete 불가능

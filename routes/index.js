@@ -82,9 +82,8 @@ module.exports = (router) => {
     .post();
   router.route('/recruitmentinfo/:season')
     .get(auth, getRecruitInfo)
-    .put(auth, putRecruitInfo);
+    .post(auth, postRecruitInfo);
   router.route('/recruitmentinfo')
-    .post(auth, postRecruitInfo)
     .get(auth, getAllRecruitmentSeason);
   return router;
 };
