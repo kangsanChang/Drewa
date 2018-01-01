@@ -18,7 +18,7 @@ module.exports.postRecruitInfo = async (req, res, next) => {
     if (onSeasonCheck) {
       // 현재 모집중인 시즌이 있는 경우
       // post 보낸 season 과 동일하면 update 하고 다르면 에러
-      if (onSeasonCheck.season.toString() === settingForm.season) {
+      if (onSeasonCheck.season.toString() === settingForm.season.toString()) {
         // update
         await models.recruitmentInfo.findOneAndUpdate({ season: settingForm.season }, settingForm);
         res.sendStatus(200);
@@ -60,6 +60,7 @@ module.exports.getRecruitInfo = async (req, res, next) => {
         season, applicationPeriod, interviewSchedule, questions,
       });
     } else if (params.season === 'prev') {
+      // 이전 정보 불러오는 경우 -> isfinished : false 로 바꿔줘야 함
       const ret = await models.recruitmentInfo.findOne()
         .where({ isFinished: true })
         .sort('-createdAt')
@@ -70,6 +71,7 @@ module.exports.getRecruitInfo = async (req, res, next) => {
       delete info.createdAt;
       delete info.updatedAt;
       info.season = '';
+      info.isFinished = false;
       res.r(info);
     } else {
       const ret = await models.recruitmentInfo.findOne().where({ season: params.season }).exec();
@@ -85,10 +87,21 @@ module.exports.getRecruitInfo = async (req, res, next) => {
   }
 };
 
-module.exports.putRecruitInfo = async (req, res, next) => {
+module.exports.seasonEnd = async (req, res, next) => {
   try {
-    await models.recruitmentInfo.findOneAndUpdate({ season: req.params.season }, req.body).exec();
-    res.r(null);
+    const { params } = req;
+    const { season } = params;
+    await models.recruitmentInfo.findOneAndUpdate({ season }, { isFinished: true });
+    res.sendStatus(200);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports.removeRecruitInfo = async (req, res, next) => {
+  try {
+    await models.recruitmentInfo.remove({ season: req.params.season }).exec();
+    res.sendStatus(204);
   } catch (err) {
     next(err);
   }

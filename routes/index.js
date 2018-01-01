@@ -18,7 +18,7 @@ const {
 } = require('../controller/fileUpload');
 
 const {
-  getAllRecruitmentSeason, postRecruitInfo, putRecruitInfo, getRecruitInfo,
+  getAllRecruitmentSeason, postRecruitInfo, getRecruitInfo, removeRecruitInfo, seasonEnd
 } = require('../controller/recruitmentInfo');
 
 const {
@@ -82,7 +82,10 @@ module.exports = (router) => {
     .post();
   router.route('/recruitmentinfo/:season')
     .get(auth, getRecruitInfo)
-    .post(auth, postRecruitInfo);
+    .post(auth, postRecruitInfo)
+    .delete(auth, removeRecruitInfo);
+  router.route('/recruitmentinfo/:season/end')
+    .put(auth, seasonEnd);
   router.route('/recruitmentinfo')
     .get(auth, getAllRecruitmentSeason);
   return router;
