@@ -1,7 +1,7 @@
 const auth = require('../controller/jwtAuth')().authenticate();
 
 const {
-  applicantSignUp, getAllApplicant, getApplicantStatus
+  applicantSignUp, getAllApplicant, getApplicantStatus,
 } = require('../controller/applicant');
 
 const {
@@ -12,13 +12,14 @@ const {
   onlyApplicant, onlyInterviewer, checkSubmit, checkTime, postLogin,
 } = require('../controller/authController');
 
-// TODO(SH) : 포트폴리오와 프로필 이미지 업로드 멀터 개선해야함 새로 짜야할듯.
 const {
-  uploadPic, portfolioUpload, removePicture, removePortfolio, uploadFile,
+  imgUpload, portfolioUpload, posterUpload,
+  fileUploadCB, posterUploadCB, removeImage, removePortfolio,
 } = require('../controller/fileUpload');
 
 const {
-  getAllRecruitmentSeason, postRecruitInfo, getRecruitInfo, removeRecruitInfo, seasonEnd
+  getMainInfo, getAllRecruitmentSeason, postRecruitInfo, getRecruitInfo, removeRecruitInfo,
+  seasonEnd,
 } = require('../controller/recruitmentInfo');
 
 const {
@@ -57,13 +58,12 @@ module.exports = (router) => {
 
   // 지원서 내부 업로드 (사진, 포폴)
   router.route('/applicants/:applicantIdx/application/picture')
-  // 사진 등록 <input name='user_image'> 기준 ***************************** files.uploadFile
-    .post(auth, onlyApplicant, checkSubmit, uploadPic)
+    .post(auth, onlyApplicant, checkSubmit, imgUpload, fileUploadCB)
     // 사진 삭제
-    .delete(auth, onlyApplicant, checkSubmit, removePicture);
+    .delete(auth, onlyApplicant, checkSubmit, removeImage);
   router.route('/applicants/:applicantIdx/application/portfolio')
   // 포트폴리오 등록 <input name='user_portfolio'> 기준
-    .post(auth, onlyApplicant, checkSubmit, portfolioUpload, uploadFile)
+    .post(auth, onlyApplicant, checkSubmit, portfolioUpload, fileUploadCB)
     // 포트폴리오 삭제
     .delete(auth, onlyApplicant, checkSubmit, removePortfolio);
 
@@ -80,10 +80,15 @@ module.exports = (router) => {
     .get()
     // 특정 지원서 평가한것 보내기
     .post();
+  router.route('/recruitmentinfo/main')
+    .get(getMainInfo);
   router.route('/recruitmentinfo/:season')
     .get(auth, getRecruitInfo)
     .post(auth, postRecruitInfo)
     .delete(auth, removeRecruitInfo);
+  // 해당 시즌 포스터 업로드
+  router.route('/recruitmentinfo/:season/poster')
+    .post(auth, posterUpload, posterUploadCB);
   router.route('/recruitmentinfo/:season/end')
     .put(auth, seasonEnd);
   router.route('/recruitmentinfo')

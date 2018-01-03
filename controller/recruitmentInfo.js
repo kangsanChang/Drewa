@@ -45,6 +45,21 @@ module.exports.postRecruitInfo = async (req, res, next) => {
   }
 };
 
+module.exports.getMainInfo = async (req, res, next) => {
+  // token 필요없이 main 에서만 주는 정보 필요해서 생성
+  try {
+    const {
+      season, mainTitle, mainDescription, mainPosterUrl,
+    } = await models.recruitmentInfo.findOne().where({ isFinished: false }).exec();
+
+    res.r({
+      season, mainTitle, mainDescription, mainPosterUrl,
+    });
+  } catch (e) {
+    next(e);
+  }
+};
+
 module.exports.getRecruitInfo = async (req, res, next) => {
   try {
     // admin 이 이전 지원정보 보는 경우랑 지원자들이 보는 경우 둘다 사용

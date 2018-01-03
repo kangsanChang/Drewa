@@ -130,12 +130,12 @@ module.exports.getMyApplication = async (req, res, next) => {
     const portfolioFileName = await getFileName('portfolios', applicantIdx);
 
     if (imageFileName) {
-      const imageKeyPath = getKeyPath(userInfoRet.userEmail, 'images', imageFileName);
+      const imageKeyPath = getKeyPath(userInfoRet.userEmail, 'user_image', imageFileName);
       const imageUrl = getFileUrl(imageKeyPath);
       result.applicantImageUrl = imageUrl;
     }
     if (portfolioFileName) {
-      const portfolioKeyPath = getKeyPath(userInfoRet.userEmail, 'portfolios', portfolioFileName);
+      const portfolioKeyPath = getKeyPath(userInfoRet.userEmail, 'user_portfolio', portfolioFileName);
       const portfolioUrl = getFileUrl(portfolioKeyPath);
       result.applicantPortfolioUrl = portfolioUrl;
     }
@@ -152,10 +152,10 @@ const remover = async (applicantIdx, userEmail) => {
   const imageFileName = await getFileName('images', applicantIdx);
   const portfolioFileName = await getFileName('portfolios', applicantIdx);
   if (imageFileName) {
-    await removeFile(applicantIdx, userEmail, 'images');
+    await removeFile(applicantIdx, userEmail, 'user_image');
   }
   if (portfolioFileName) {
-    await removeFile(applicantIdx, userEmail, 'portfolios');
+    await removeFile(applicantIdx, userEmail, 'user_portfolio');
   }
   await models.applicantStatusTb.destroy({ where: { applicantIdx }, transaction: t });
   await models.userInfoTb.destroy({ where: { userEmail }, transaction: t });
