@@ -5,7 +5,7 @@ const {
 } = require('../controller/applicant');
 
 const {
-  postApplication, getApplications, getMyApplication, removeApplication, submitApplication,
+  postApplication, getMyApplication, removeApplication, submitApplication,
 } = require('../controller/applications');
 
 const {
@@ -39,9 +39,7 @@ module.exports = (router) => {
   // 지원자 관련
   router.route('/applicants')
   // 지원자 등록
-    .post(applicantSignUp)
-    // 지원자 전체 불러오기 (관리자) - 관리자 권한 필요
-    .get(getAllApplicant);
+    .post(applicantSignUp);
 
   // 지원서 관련 (지원자) - 본인 권한 필요
   router.route('/applicants/:applicantIdx/application')

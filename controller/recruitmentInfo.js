@@ -75,7 +75,6 @@ module.exports.getRecruitInfo = async (req, res, next) => {
         season, applicationPeriod, interviewSchedule, questions,
       });
     } else if (params.season === 'prev') {
-      // 이전 정보 불러오는 경우 -> isfinished : false 로 바꿔줘야 함
       const ret = await models.recruitmentInfo.findOne()
         .where({ isFinished: true })
         .sort('-createdAt')

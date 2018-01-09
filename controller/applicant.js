@@ -47,9 +47,7 @@ module.exports.applicantSignUp = async (req, res, next) => {
     }
 
     const { season: userSeason } = await models.recruitmentInfo.findOne()
-      .sort('-createdAt')
-      .select('season')
-      .exec();
+      .where({ isFinished: false }).exec();
     const newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
@@ -80,17 +78,7 @@ module.exports.applicantSignUp = async (req, res, next) => {
   }
 };
 
-module.exports.getAllApplicant = async (req, res, next) => {
-  try {
-    const allApplicants = await models.userInfoTb.findAll({ where: { userType: 'applicant' } });
-    res.r(allApplicants);
-  } catch (err) {
-    next(err);
-  }
-};
-
 module.exports.getApplicantStatus = async (req, res, next) => {
-
   try {
     const applicantIdx = Number(req.params.applicantIdx);
     const {
