@@ -26,6 +26,11 @@ const {
   interviewerSignUp,
 } = require('../controller/interviewer');
 
+const {
+  getApplications,
+} = require('../controller/evaluation');
+
+
 // /api/ 하위로 들어옴
 
 module.exports = (router) => {
@@ -69,15 +74,17 @@ module.exports = (router) => {
   router.route('/applicants/:applicantIdx/status')
     .get(auth, onlyApplicant, getApplicantStatus);
 
-  // 지원서 관련 (면접관) - 면접관 권한 필요
-  router.route('/applications')
-  // 지원서 모두 가져오기 (목록)
-    .get(getApplications);
-  router.route('/applications/:applicantIdx')
-  // 특정 지원서 평가 테이블 불러오기
-    .get()
-    // 특정 지원서 평가한것 보내기
-    .post();
+  // 평가 정보 가져오기, 평가하기 (면접관)
+  router.route('/evaluation/application')
+    .get(auth, getApplications) // 제출 된 application 전체 가져오기 (표에서 사용)
+    .post(); // 서류 합격자 보내기 (admin 전용)
+  router.route('/evaluation/application/:applicantIdx/point')
+    .post(); // 면접관 개인이 점수 주기
+  router.route('/evaluation/application/:applicantIdx/comment')
+    .get() // 면접관들이 써 놓은 코멘트 가져오기
+    .post(); // 면접관 개인이 코멘트 달기
+
+  // recruitment info 가져오기
   router.route('/recruitmentinfo/main')
     .get(getMainInfo);
   router.route('/recruitmentinfo/:season')
