@@ -84,7 +84,7 @@ module.exports.submitApplication = async (req, res, next) => {
 };
 
 // 내 정보 조회 (면접자 전용)
-module.exports.getMyApplication = async (req, res, next) => {
+module.exports.getApplicationData = async (req, res, next) => {
   try {
     const applicantIdx = Number(req.params.applicantIdx);
     const applicationDocRet = await models.applicationDoc.findOne({ applicantIdx })

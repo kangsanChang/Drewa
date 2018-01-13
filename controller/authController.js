@@ -45,7 +45,7 @@ module.exports.onlyInterviewer = async (req, res, next) => {
   }
 };
 
-module.exports.postLogin = async (req, res, next) => {
+module.exports.login = async (req, res, next) => {
   try {
     const { userEmail, userPassword } = req.body;
     if (!userEmail || !userPassword) {
@@ -59,17 +59,17 @@ module.exports.postLogin = async (req, res, next) => {
     const isPasswordMatch = await bcrypt.compare(userPassword, userInfoData.userPassword);
     if (!isPasswordMatch) { return res.status(400).end('password not matching'); }
 
-    const { userIdx, userType } = userInfoData;
+    const { userIdx, userName, userType } = userInfoData;
     if (userType === 'applicant') {
       const { applicantIdx } = await models.applicantInfoTb.findOne({ where: { userIdx } });
       const token = await createToken(applicantIdx, userEmail, userType);
       res.r({ token, applicantIdx });
     } else if (userType === 'interviewer') {
       const token = await createToken(userIdx, userEmail, userType);
-      res.r({ token, userIdx, userType });
+      res.r({ token, userIdx, userType, userName, userEmail });
     } else if (userType === 'admin') {
       const token = await createToken('', userEmail, userType);
-      res.r({ token, userType });
+      res.r({ token, userType, userName, userEmail });
     }
   } catch (err) {
     next(err);

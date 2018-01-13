@@ -8,6 +8,7 @@ const applicantEvaluationSchema = new mongoose.Schema(
         {
           userIdx: Number,
           comment: String,
+          createdAt: Date,
         },
       ],
       evaluations: [
@@ -22,6 +23,7 @@ const applicantEvaluationSchema = new mongoose.Schema(
         {
           userIdx: Number,
           comment: String,
+          createdAt: Date,
         },
       ],
       evaluations: [

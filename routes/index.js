@@ -1,15 +1,15 @@
 const auth = require('../controller/jwtAuth')().authenticate();
 
 const {
-  applicantSignUp, getAllApplicant, getApplicantStatus,
+  applicantSignUp, getApplicantStatus,
 } = require('../controller/applicant');
 
 const {
-  postApplication, getMyApplication, removeApplication, submitApplication,
+  postApplication, getApplicationData, removeApplication, submitApplication,
 } = require('../controller/applications');
 
 const {
-  onlyApplicant, onlyInterviewer, checkSubmit, checkTime, postLogin,
+  onlyApplicant, onlyInterviewer, checkSubmit, checkTime, login,
 } = require('../controller/authController');
 
 const {
@@ -27,7 +27,7 @@ const {
 } = require('../controller/interviewer');
 
 const {
-  getApplications,
+  getApplications, getEvalData, postComment, deleteComment, setPoint,
 } = require('../controller/evaluation');
 
 
@@ -40,7 +40,7 @@ module.exports = (router) => {
   // 로그인
   router.route('/login')
   // 로그인, 토큰 발급 (면접관, 지원자)
-    .post(postLogin); // 면접관 로그인 페이지도 따로 필요할 듯
+    .post(login);
   // 지원자 관련
   router.route('/applicants')
   // 지원자 등록
@@ -51,7 +51,7 @@ module.exports = (router) => {
   // 지원서 등록, 수정 (upsert)
     .post(auth, onlyApplicant, checkTime, checkSubmit, postApplication)
     // 지원서 보기 (수정시 본인 지원서 볼때)
-    .get(auth, onlyApplicant, getMyApplication)
+    .get(auth, getApplicationData)
     // 지원서 삭제 (본인 지원서 삭제 할 경우)
     .delete(auth, onlyApplicant, checkTime, checkSubmit, removeApplication);
 
@@ -78,11 +78,14 @@ module.exports = (router) => {
   router.route('/evaluation/application')
     .get(auth, getApplications) // 제출 된 application 전체 가져오기 (표에서 사용)
     .post(); // 서류 합격자 보내기 (admin 전용)
+  router.route('/evaluation/application/:applicantIdx')
+    .get(auth, getEvalData); // 면접관들이 써 놓은 코멘트, 내 점수 가져오기
   router.route('/evaluation/application/:applicantIdx/point')
-    .post(); // 면접관 개인이 점수 주기
-  router.route('/evaluation/application/:applicantIdx/comment')
-    .get() // 면접관들이 써 놓은 코멘트 가져오기
-    .post(); // 면접관 개인이 코멘트 달기
+    .post(auth, setPoint); // 면접관 개인이 점수 주기
+  router.route('/evaluation/application/:applicantIdx/comments')
+    .post(auth, postComment); // 면접관 개인이 코멘트 달기
+  router.route('/evaluation/application/:applicantIdx/comments/:id')
+    .delete(auth, deleteComment);
 
   // recruitment info 가져오기
   router.route('/recruitmentinfo/main')
