@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const applicationDocSchema = new mongoose.Schema(
   {
-    userIdx: {
+    applicantIdx: {
       type: Number,
       index: true,
       unique: true,
@@ -15,9 +15,16 @@ const applicationDocSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-    personalUrl: [String],
+    personalUrl: String,
     answers: [String],
-    interviewAvailableTime: [Date],
+    devAnswers: [String],
+    desAnswers: [String],
+    interviewAvailableTime: [{
+      date: Date,
+      times: [String],
+    }],
+  }, {
+    timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
   },
 );
 

@@ -1,64 +1,107 @@
 const models = require('../models');
 const auth = require('./authController');
 const bcrypt = require('bcrypt');
+const config = require('./../config/config.json');
+const request = require('request');
+
+const verifyRecaptcha = (recaptchaToken) => {
+  const verificationUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${config.grecaptcha}&response=${recaptchaToken}`;
+  return new Promise((resolve) => {
+    request(verificationUrl, (err, res, body) => {
+      if (err) {
+        const error = new Error('Failed to verify reCAPTCHA');
+        error.status = 400;
+        throw (error);
+      }
+      resolve(body);
+    });
+  });
+};
 
 module.exports.applicantSignUp = async (req, res, next) => {
-  // Transaction 준비
   const t = await models.sequelize.transaction();
   try {
-    // email, password 빈칸인지 검사
-    if (req.body.userEmail === undefined || req.body.userPassword === undefined) {
-      throw Error('Property exception');
+    const { userEmail, userPassword, recaptchaToken } = req.body;
+    if (!userEmail || !userPassword) {
+      const err = new Error('There is an empty field');
+      err.status = 400;
+      throw err;
     }
-    // req.body 에서 가져옴 각각 user... 라는 변수명으로 저장함
-    const { userEmail, userPassword } = req.body;
-    // 이미 있는 email 인지 validation 해야 함
-    const check = await models.userInfoTb.find({ where: { userEmail } }); // userEmail : userEmail
 
-    // 이미 존재하는 email 일 경우
-    if (check !== null) {
-      throw Error('User Already Exists');
+    // Verification reCAPTCHA
+    const verified = await verifyRecaptcha(recaptchaToken);
+    const v = JSON.parse(verified);
+
+    if (!v.success) {
+      const err = new Error('reCAPTCHA Failed');
+      err.status = 400;
+      throw err;
     }
-    let season = await models.recruitmentInfo.find()
-                             .sort('-createdAt')
-                             .limit(1)
-                             .select('season')
-                             .exec();
-    season = season[0].season;
-    let newData = {
+
+    // Email Validation
+    const check = await models.userInfoTb.findOne({ where: { userEmail } });
+    if (check !== null) {
+      const err = new Error('User Already Exists');
+      err.status = 400;
+      throw err;
+    }
+
+    const { season: userSeason } = await models.recruitmentInfo.findOne()
+      .where({ isFinished: false }).exec();
+    const newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
-      userSeason: season,
+      userSeason,
       userEmail,
     };
     const result = await models.userInfoTb.create(newData, { transaction: t });
-    const applicantRet = await models.applicantInfoTb.create({ userIdx: result.userIdx },
-      { transaction: t });
-    const applicationRet = await models.applicationDoc.create({ userIdx: result.userIdx });
-    newData = {
-      applicantIdx: applicantRet.applicantIdx,
-      applicationDocument: applicationRet._id.toString(),
-    };
-    await models.applicationTb.create(newData, { transaction: t });
+    const applicantRet = await models.applicantInfoTb.create(
+      { userIdx: result.userIdx }, { transaction: t },
+    );
+    const { applicantIdx } = applicantRet;
+    await models.applicationDoc.create({ applicantIdx });
+    await models.applicantEvaluation.create({ applicantIdx });
+    await models.applicantStatusTb.create({ applicantIdx }, { transaction: t });
     await t.commit();
-    const token = await auth.createToken(result.userIdx, userEmail, 'applicant');
-    // TODO: 헷갈림 DB에서도 쓰는 applicantIdx 자체로 로 이름 통일하도록 바꿔주면 좋을 듯
-    // TODO: 내부에선 userIdx고, 프론트에선 applicantIdx라 헷갈림
+    const token = await auth.createToken(applicantIdx, userEmail, 'applicant');
     const resData = {
       token,
-      applicantIdx: result.userIdx,
+      applicantIdx,
     };
     res.r(resData);
   } catch (err) {
+    if (err.name === 'SequelizeValidationError') {
+      err.status = 400;
+    }
     await t.rollback();
     next(err);
   }
 };
 
-module.exports.getAllApplicant = async (req, res, next) => {
+module.exports.getApplicantStatus = async (req, res, next) => {
   try {
-    const allApplicants = await models.userInfoTb.findAll({ where: { userType: 'applicant' } });
-    res.r(allApplicants);
+    const applicantIdx = Number(req.params.applicantIdx);
+    const {
+      season, applicationPeriod, interviewSchedule, interviewPlace,
+    } = await models.recruitmentInfo.findOne()
+      .sort('-createdAt')
+      .exec();
+    const applicantStatusData = await models.applicantStatusTb
+      .findOne({ where: { applicantIdx } });
+    const {
+      isSubmit, isApplicationPass, isFinalPass, confirmedInterviewTime,
+    } = applicantStatusData.dataValues;
+    const result = {
+      season,
+      applicationPeriod,
+      interviewSchedule,
+      interviewPlace,
+      isSubmit,
+      isApplicationPass,
+      isFinalPass,
+      confirmedInterviewTime,
+    };
+    res.r(result);
   } catch (err) {
     next(err);
   }

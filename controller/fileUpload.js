@@ -1,147 +1,195 @@
 /* eslint-disable consistent-return */
 const config = require('../config/config.json');
 const models = require('../models');
+const debug = require('debug')('drewa:test');
 // Connect to S3
 const AWS = require('aws-sdk');
 AWS.config.region = config.S3.region;
-AWS.config.update({
-  accessKeyId: config.S3.accessKeyId,
-  secretAccessKey: config.S3.secretAccessKey,
-});
+AWS.config.update(
+  { accessKeyId: config.S3.accessKeyId, secretAccessKey: config.S3.secretAccessKey });
 
 // Set multer to use memory storage
 const multer = require('multer');
 const storage = multer.memoryStorage();
-const imageMax = 2 * 1000 * 1000; // 2 MB
+const imageMax = 3 * 1000 * 1000; // 3 MB
 const portfolioMax = 50 * 1000 * 1000; // 50 MB
 
 // Set validator
-const imageValidation = (req, file, cb) => {
-  try {
-    if (file.fieldname === 'user_image') {
-      if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-        return cb(null, true);
-      }
-    }
-    return cb(null, false);
-  } catch (err) {
-    return cb(new Error('Unexpected error'));
+const imageFilter = (req, file, cb) => {
+  // Reject
+  if (file.fieldname !== 'user_image') {
+    const err = new Error('file from wrong field');
+    err.status = 400;
+    return cb(err, false);
   }
-};
 
-const portfolioValidation = (req, file, cb) => {
-  try {
-    if (file.fieldname === 'user_portfolio') {
-      if (file.mimetype === 'application/pdf') {
-        return cb(null, true);
-      }
-    }
-    return cb(null, false);
-  } catch (err) {
-    return cb(new Error('Unexpected error'));
+  // Resolve
+  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') { return cb(null, true); }
+
+  // Error
+  const err = new Error('goes wrong on the filename extensions');
+  err.status = 400;
+  return cb(err);
+};
+const portfolioFilter = (req, file, cb) => {
+  if (file.fieldname !== 'user_portfolio') {
+    const err = new Error('wrong field name');
+    err.status = 400;
+    return cb(err, false);
   }
+  // Resolve
+  if (file.mimetype === 'application/pdf') {
+    return cb(null, true);
+  }
+  // Reject : wrong filename extensions.
+  const err = new Error('goes wrong on the filename extensions');
+  err.status = 400;
+  return cb(err, false);
 };
 
-// Accept expected file only (image:jpeg,png / file:pdf)
-module.exports.imageUpload = multer(
-  { storage, limits: { fileSize: imageMax }, fileFilter: imageValidation });
-
-module.exports.portfolioUpload = multer(
-  { storage, limits: { fileSize: portfolioMax }, fileFilter: portfolioValidation });
-
-//TODO: 따로 뺴야함. 스파게티 청소 필요
-const clearToS3 = (removeKeyPath) => {
-  return new Promise(async (resolve, reject) => {
-    const params = {
+// AWS Control methods
+const clearToS3 = removeKeyPath => new Promise(async (resolve, reject) => {
+  const params = {
+    Bucket: config.S3.bucketName,
+    Key: removeKeyPath,
+  };
+  const s3 = new AWS.S3();
+  await s3.deleteObject(params, (err) => { if (err) { reject(err); } });
+});
+const saveToS3 = (file, keyPath) => new Promise(async (resolve, reject) => {
+  const s3 = new AWS.S3({
+    params: {
       Bucket: config.S3.bucketName,
-      Key: removeKeyPath,
-    };
-    const s3 = new AWS.S3();
-    await s3.deleteObject(params, (err) => { if (err) { reject(err); } });
-  });
-};
-
-const saveToS3 = (file, keyName) => {
-  return new Promise(async (resolve, reject) => {
-    const s3path = (file.fieldname === 'user_image') ? 'images/' : 'portfolios/';
-    const params = {
-      Bucket: config.S3.bucketName,
-      Key: s3path + keyName,
+      Key: keyPath,
       ACL: 'public-read',
       ContentType: file.mimetype,
-    };
-    const s3obj = new AWS.S3({ params });
-    // 업데이트 되는 경우에 key 값 같으면 자동으로 덮어 씀
-    await s3obj.upload({ Body: file.buffer })
-               .send((err, data) => {
-                 if (err) { reject(err); }
-                 resolve(data.Location);
-               });
+    },
   });
+  await s3.upload({ Body: file.buffer })
+    .send((err, data) => {
+      if (err) { reject(err); }
+      resolve(data.Location);
+    });
+});
+
+const getFileName = async (field, applicantIdx) => {
+  // TODO: index 로 받고 poster 타입 추가하면 될 듯
+  if (field === 'user_image') {
+    const { applicantPictureFilename } = await models.applicantInfoTb
+      .findOne({ where: { applicantIdx } });
+    return applicantPictureFilename;
+  } else if (field === 'user_portfolio') {
+    const { portfolioFilename } = await models.applicationDoc.findOne({ applicantIdx }).exec();
+    return portfolioFilename;
+  }
 };
+module.exports.getFileName = getFileName;
 
-module.exports.uploadFile = async (req, res, next) => {
+const getKeyPath = (userEmail, field, fileName) => {
+  const encoded = Buffer.from(userEmail).toString('base64');
+  return `${field}/${encoded}${fileName}`;
+};
+module.exports.getKeyPath = getKeyPath;
+
+module.exports.getFileUrl =
+  keyPath => `https://s3.${config.S3.region}.amazonaws.com/${config.S3.bucketName}/${keyPath}`;
+
+// create multer object
+module.exports.imgUpload = multer({
+  storage, limits: { fileSize: imageMax }, fileFilter: imageFilter,
+}).single('user_image');
+
+module.exports.portfolioUpload = multer({
+  storage,
+  limits: { fileSize: portfolioMax },
+  fileFilter: portfolioFilter,
+}).single('user_portfolio');
+
+module.exports.posterUpload = multer({ storage }).single('poster');
+
+module.exports.posterUploadCB = async (req, res, next) => {
   try {
-    if (!req.file) { throw new Error('Unexpected file!'); }
-    const file = req.file;
-    const userEmail = req.user.userEmail;
-    const fileType = (file.fieldname === 'user_image') ? 'images' : 'portfolios';
-    const encoded = Buffer.from(userEmail).toString('base64');
-    const keyName = encoded + file.originalname;
-
-    if (fileType === 'images') {
-      // applicantInfoTb 조회해서 존재하는 파일 명 있으면 S3에서 찾아서 삭제하기
-      await models.applicantInfoTb.findOne({ where: { userIdx: req.user.userIdx } })
-                  .then((data) => {
-                    const existFileName = data.dataValues.applicantPictureFilename;
-                    if (existFileName !== null) {
-                      // DB 안에 picture filename 있으면 삭제하기
-                      const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
-                      clearToS3(removeKeyPath);
-                    }
-                  });
-      // 새로 저장할 file 이름으로 Update 시키기 (null 이어도 테이블 셀이 존재는 하므로 update)
-      await models.applicantInfoTb.update({ applicantPictureFilename: file.originalname },
-        { where: { userIdx: req.user.userIdx } });
-    } else if (fileType === 'portfolios') {
-      const existObject = await models.applicationDoc.findOneAndUpdate(
-        { userIdx: req.user.userIdx },
-        { portfolioFilename: file.originalname }, { ranValidators: true });
-      const existFileName = existObject.portfolioFilename;
-      if (existFileName !== null) {
-        // DB 안에 picture filename 있으면 삭제하기
-        const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
-        clearToS3(removeKeyPath);
-      }
-    }
-    const s3Url = await saveToS3(file, keyName);
-    const result = {
-      url: s3Url,
-      fileName: file.originalname,
-    };
-    res.r(result);
-  } catch (err) {
-    next(err);
+    const { fieldname, originalname } = req.file; // fieldname: poster
+    const { season } = req.params;
+    const keyPath = `${fieldname}/${season}/${originalname}`;
+    const url = await saveToS3(req.file, keyPath);
+    await models.recruitmentInfo.findOneAndUpdate({ season }, { mainPosterUrl: url });
+    res.r({ url });
+  } catch (e) {
+    next(e);
   }
 };
 
-module.exports.removePicture = async (req, res, next) => {
+module.exports.fileUploadCB = async (req, res, next) => {
   try {
-    const userEmail = req.user.userEmail;
-    const fileType = 'images';
-    const encoded = Buffer.from(userEmail).toString('base64');
-    await models.applicantInfoTb.findOne({ where: { userIdx: req.user.userIdx } })
-                .then((data) => {
-                  const existFileName = data.dataValues.applicantPictureFilename;
-                  if (existFileName !== null) {
-                    const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
-                    clearToS3(removeKeyPath);
-                  }
-                });
+    const { userEmail, applicantIdx } = req.user;
+    const { fieldname, originalname } = req.file;
+
+    // 이전 파일 삭제
+    const prevFile = await getFileName(fieldname, applicantIdx);
+    if (prevFile) {
+      const keyPath = getKeyPath(userEmail, fieldname, prevFile);
+      clearToS3(keyPath);
+    }
+
+    if (fieldname === 'user_image') {
+      await models.applicantInfoTb.update({ applicantPictureFilename: originalname },
+        { where: { applicantIdx } });
+    } else if (fieldname === 'user_portfolio') {
+      await models.applicationDoc.findOneAndUpdate({ applicantIdx },
+        { portfolioFilename: originalname });
+    }
+    // 파일 업로드
+    const keyPath = getKeyPath(userEmail, fieldname, originalname);
+    const url = await saveToS3(req.file, keyPath);
+    const result = { url, fileName: originalname };
+    res.r(result);
+  } catch (e) {
+    next(e);
+  }
+};
+
+// Remove files
+const removeFile = async (applicantIdx, userEmail, fileType) => {
+  let keyPath;
+  if (fileType === 'user_image') {
+    const data = await models.applicantInfoTb.findOne({ where: { applicantIdx } });
+    if (data.applicantPictureFilename) {
+      keyPath = getKeyPath(userEmail, fileType, data.applicantPictureFilename);
+      clearToS3(keyPath);
+    } else {
+      // 파일이 없는 데 삭제하려고 하는 경우
+      const err = new Error('Can not find file');
+      err.status = 400;
+      throw err;
+    }
     // filename null 로 만들기
     await models.applicantInfoTb.update({ applicantPictureFilename: null },
-      { where: { userIdx: req.user.userIdx } });
-    res.r('remove picture success!!');
+      { where: { applicantIdx } });
+  } else if (fileType === 'user_portfolio') {
+    const data = await models.applicationDoc.findOne({ applicantIdx }).exec();
+    if (data.portfolioFilename) {
+      keyPath = getKeyPath(userEmail, fileType, data.portfolioFilename);
+      clearToS3(keyPath);
+    } else {
+      // 파일이 없는 데 삭제하려고 하는 경우
+      const err = new Error('Can not find file');
+      err.status = 400;
+      throw err;
+    }
+    // filename null 로 만들기
+    await models.applicationDoc.findOneAndUpdate({ applicantIdx },
+      { portfolioFilename: null });
+  }
+};
+
+module.exports.removeFile = removeFile;
+
+module.exports.removeImage = async (req, res, next) => {
+  try {
+    const { userEmail, applicantIdx } = req.user;
+    await removeFile(applicantIdx, userEmail, 'user_image');
+    res.status(204).end(); // 204 (No-content) 는 res.body 없이 res 를 종료한다.
   } catch (err) {
     next(err);
   }
@@ -149,20 +197,9 @@ module.exports.removePicture = async (req, res, next) => {
 
 module.exports.removePortfolio = async (req, res, next) => {
   try {
-    const userEmail = req.user.userEmail;
-    const fileType = 'portfolios';
-    const encoded = Buffer.from(userEmail).toString('base64');
-    await models.applicationDoc.findOne({ userIdx: req.user.userIdx }, (err, data) => {
-      const existFileName = data.portfolioFilename;
-      if (existFileName !== null) {
-        const removeKeyPath = `${fileType}/${encoded}${existFileName}`;
-        clearToS3(removeKeyPath);
-      }
-    });
-    // filename null 로 만들기
-    await models.applicationDoc.findOneAndUpdate({ userIdx: req.user.userIdx },
-      { portfolioFilename: null });
-    res.r('remove portfolio success!!');
+    const { userEmail, applicantIdx } = req.user;
+    await removeFile(applicantIdx, userEmail, 'user_portfolio');
+    res.status(204).end();
   } catch (err) {
     next(err);
   }

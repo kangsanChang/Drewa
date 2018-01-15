@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       applicantBirthday: {
-        type: DataTypes.DATEONLY,
+        type: DataTypes.STRING,
         field: 'applicant_birthday',
       },
       applicantLocation: {
@@ -45,18 +45,13 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         field: 'applicant_picture_filename',
       },
-      applicantInterviewTime: {
-        type: DataTypes.DATE,
-        field: 'applicant_interview_time',
-      },
     },
     {
       timestamps: true,
       tableName: 'APPLICANT_INFO_TB',
       underscored: true,
       comment: '지원자 정보 테이블',
-    },
-  );
+    });
   applicantInfoTb.associate = (models) => {
     models.userInfoTb.hasOne(applicantInfoTb,
       { foreignKey: 'userIdx' });

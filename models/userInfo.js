@@ -26,20 +26,20 @@ module.exports = (sequelize, DataTypes) => {
       },
       userType: {
         type: DataTypes.ENUM,
-        values: ['applicant', 'interviewer'],
+        values: ['applicant', 'interviewer', 'admin'],
         field: 'user_type',
         allowNull: false,
         validate: {
-          isIn: [['applicant', 'interviewer']],
+          isIn: [['applicant', 'interviewer', 'admin']],
         },
       },
       userPosition: {
         type: DataTypes.ENUM,
-        values: ['designer', 'developer'],
+        values: ['designer', 'developer', 'admin'],
         field: 'user_position',
         allowNull: true,
         validate: {
-          isIn: [['designer', 'developer']],
+          isIn: [['designer', 'developer', 'admin']],
         },
       },
       userSeason: {
