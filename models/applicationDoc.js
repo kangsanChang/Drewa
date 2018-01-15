@@ -19,7 +19,10 @@ const applicationDocSchema = new mongoose.Schema(
     answers: [String],
     devAnswers: [String],
     desAnswers: [String],
-    interviewAvailableTime: [String],
+    interviewAvailableTime: [{
+      date: Date,
+      times: [String],
+    }],
   }, {
     timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
   },

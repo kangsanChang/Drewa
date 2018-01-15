@@ -3,20 +3,36 @@ const mongoose = require('mongoose');
 const applicantEvaluationSchema = new mongoose.Schema(
   {
     applicantIdx: Number,
-    applicationEvaluation: [
-      {
-        userIdx: Number,
-        comment: String,
-        point: Number,
-      },
-    ],
-    interviewEvaluation: [
-      {
-        userIdx: Number,
-        comment: String,
-        point: Number,
-      },
-    ],
+    application: {
+      comments: [
+        {
+          userIdx: Number,
+          comment: String,
+          createdAt: Date,
+        },
+      ],
+      evaluations: [
+        {
+          userIdx: Number,
+          point: Number,
+        },
+      ],
+    },
+    interview: {
+      comments: [
+        {
+          userIdx: Number,
+          comment: String,
+          createdAt: Date,
+        },
+      ],
+      evaluations: [
+        {
+          userIdx: Number,
+          point: Number,
+        },
+      ],
+    },
   }, {
     timestamps: { createdAt: 'createdAt', updatedAt: 'updatedAt' },
   },

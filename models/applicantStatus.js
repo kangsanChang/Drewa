@@ -34,8 +34,7 @@ module.exports = (sequelize, DataTypes) => {
       tableName: 'APPLICANT_STATUS_TB',
       underscored: true,
       comment: '지원자의 상태 테이블',
-    },
-  );
+    });
   applicantStatusTb.associate = (models) => {
     models.applicantInfoTb.hasOne(applicantStatusTb,
       { foreignKey: 'applicantIdx' });

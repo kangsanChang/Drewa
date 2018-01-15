@@ -4,7 +4,12 @@ const bcrypt = require('bcrypt');
 const models = require('../models');
 
 const createToken = async (index, userEmail, userType) => {
-  const payloads = { index, userEmail, userType };
+  const payloads = { userEmail, userType };
+  if (userType === 'applicant') {
+    payloads.applicantIdx = index;
+  } else if (userType === 'interviewer') {
+    payloads.userIdx = index;
+  }
   const token = await jwt.sign(payloads, config.auth.SECRET_KEY,
     { expiresIn: config.auth.EXPIRES });
   return token;
@@ -15,8 +20,6 @@ module.exports.createToken = createToken;
 module.exports.onlyApplicant = async (req, res, next) => {
   try {
     let err = null;
-    // userType 이 'applicant' 인 요청만 유효함
-    // 본인의 applications 에 대해서만 유효함
     if (req.user.userType !== 'applicant' ||
       req.user.applicantIdx !== Number(req.params.applicantIdx)) {
       err = new Error('Permission denied');
@@ -31,8 +34,6 @@ module.exports.onlyApplicant = async (req, res, next) => {
 
 module.exports.onlyInterviewer = async (req, res, next) => {
   try {
-    // userType 이 'interviewer' 인 요청만 유효함
-    // 본인의 applications 에 대해서만 유효함
     if (req.user.userType !== 'interviewer') {
       const err = new Error('Permission denied');
       err.status = 403;
@@ -44,7 +45,7 @@ module.exports.onlyInterviewer = async (req, res, next) => {
   }
 };
 
-module.exports.postLogin = async (req, res, next) => {
+module.exports.login = async (req, res, next) => {
   try {
     const { userEmail, userPassword } = req.body;
     if (!userEmail || !userPassword) {
@@ -58,9 +59,18 @@ module.exports.postLogin = async (req, res, next) => {
     const isPasswordMatch = await bcrypt.compare(userPassword, userInfoData.userPassword);
     if (!isPasswordMatch) { return res.status(400).end('password not matching'); }
 
-    const { userIdx, userType } = userInfoData;
-    const token = await createToken(userIdx, userEmail, userType);
-    res.r({ token, userIdx });
+    const { userIdx, userName, userType } = userInfoData;
+    if (userType === 'applicant') {
+      const { applicantIdx } = await models.applicantInfoTb.findOne({ where: { userIdx } });
+      const token = await createToken(applicantIdx, userEmail, userType);
+      res.r({ token, applicantIdx });
+    } else if (userType === 'interviewer') {
+      const token = await createToken(userIdx, userEmail, userType);
+      res.r({ token, userIdx, userType, userName, userEmail });
+    } else if (userType === 'admin') {
+      const token = await createToken('', userEmail, userType);
+      res.r({ token, userType, userName, userEmail });
+    }
   } catch (err) {
     next(err);
   }
@@ -68,11 +78,11 @@ module.exports.postLogin = async (req, res, next) => {
 
 const verifyDeadline = async () => {
   try {
-    const result = await models.recruitmentInfo.findOne()
+    const { applicationPeriod } = await models.recruitmentInfo.findOne()
       .sort('-createdAt')
       .exec();
     const now = new Date().toLocaleString();
-    const time = new Date(result.deadline).toLocaleString();
+    const time = new Date(applicationPeriod[1]).toLocaleString();
     return now > time; // 시간이 남았으면 true 만료되었으면 false
   } catch (err) {
     throw err;

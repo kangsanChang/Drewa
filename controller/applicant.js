@@ -19,25 +19,20 @@ const verifyRecaptcha = (recaptchaToken) => {
 };
 
 module.exports.applicantSignUp = async (req, res, next) => {
-  // Transaction 준비
   const t = await models.sequelize.transaction();
   try {
-    // email, password 빈칸 검사
-    if (!req.body.userEmail || !req.body.userPassword) {
+    const { userEmail, userPassword, recaptchaToken } = req.body;
+    if (!userEmail || !userPassword) {
       const err = new Error('There is an empty field');
       err.status = 400;
       throw err;
     }
-    const { userEmail, userPassword, recaptchaToken } = req.body;
 
     // Verification reCAPTCHA
     const verified = await verifyRecaptcha(recaptchaToken);
-    // string -> object
     const v = JSON.parse(verified);
 
     if (!v.success) {
-      // reCAPTCHA token 인증이 false 인 경우
-      // reload 되지 않은 reCAPTCHA widget 을 이용하거나, 올바르지 않은 key 로 접근하는 경우
       const err = new Error('reCAPTCHA Failed');
       err.status = 400;
       throw err;
@@ -52,10 +47,8 @@ module.exports.applicantSignUp = async (req, res, next) => {
     }
 
     const { season: userSeason } = await models.recruitmentInfo.findOne()
-      .sort('-createdAt')
-      .select('season')
-      .exec();
-    let newData = {
+      .where({ isFinished: false }).exec();
+    const newData = {
       userPassword: await bcrypt.hash(userPassword, 10),
       userType: 'applicant',
       userSeason,
@@ -66,11 +59,8 @@ module.exports.applicantSignUp = async (req, res, next) => {
       { userIdx: result.userIdx }, { transaction: t },
     );
     const { applicantIdx } = applicantRet;
-    const applicationDocData = await models.applicationDoc.create({ applicantIdx });
-    newData = {
-      applicantIdx,
-      applicationDocument: applicationDocData._id.toString(),
-    };
+    await models.applicationDoc.create({ applicantIdx });
+    await models.applicantEvaluation.create({ applicantIdx });
     await models.applicantStatusTb.create({ applicantIdx }, { transaction: t });
     await t.commit();
     const token = await auth.createToken(applicantIdx, userEmail, 'applicant');
@@ -88,21 +78,11 @@ module.exports.applicantSignUp = async (req, res, next) => {
   }
 };
 
-module.exports.getAllApplicant = async (req, res, next) => {
-  try {
-    const allApplicants = await models.userInfoTb.findAll({ where: { userType: 'applicant' } });
-    res.r(allApplicants);
-  } catch (err) {
-    next(err);
-  }
-};
-
 module.exports.getApplicantStatus = async (req, res, next) => {
-
   try {
     const applicantIdx = Number(req.params.applicantIdx);
     const {
-      season, deadline, interviewTimes, interviewPlace,
+      season, applicationPeriod, interviewSchedule, interviewPlace,
     } = await models.recruitmentInfo.findOne()
       .sort('-createdAt')
       .exec();
@@ -113,8 +93,8 @@ module.exports.getApplicantStatus = async (req, res, next) => {
     } = applicantStatusData.dataValues;
     const result = {
       season,
-      deadline,
-      interviewTimes,
+      applicationPeriod,
+      interviewSchedule,
       interviewPlace,
       isSubmit,
       isApplicationPass,

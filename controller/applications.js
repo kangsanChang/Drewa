@@ -33,7 +33,6 @@ const updateApplication = async (req) => {
       applicantGrade: data.applicantGrade,
       applicantPhone: data.applicantPhone,
     };
-
     const appDocData = {
       applicantIdx,
       entryRoute: data.entryRoute,
@@ -49,8 +48,7 @@ const updateApplication = async (req) => {
       { where: { userIdx }, transaction: t });
     await models.applicantInfoTb.update(applicantData,
       { where: { applicantIdx }, transaction: t });
-    await models.applicationDoc.findOneAndUpdate(
-      { applicantIdx }, appDocData);
+    await models.applicationDoc.findOneAndUpdate({ applicantIdx }, appDocData);
     await t.commit();
   } catch (err) {
     t.rollback();
@@ -86,10 +84,11 @@ module.exports.submitApplication = async (req, res, next) => {
 };
 
 // 내 정보 조회 (면접자 전용)
-module.exports.getMyApplication = async (req, res, next) => {
+module.exports.getApplicationData = async (req, res, next) => {
   try {
     const applicantIdx = Number(req.params.applicantIdx);
-    const applicationDocRet = await models.applicationDoc.findOne({ applicantIdx }).exec();
+    const applicationDocRet = await models.applicationDoc.findOne({ applicantIdx })
+      .select('-interviewAvailableTime._id').exec();
     const applicantInfo = await models.applicantInfoTb.findOne({ where: { applicantIdx } });
     const applicantInfoRet = applicantInfo.dataValues;
     const { userIdx } = applicantInfoRet;
@@ -126,16 +125,15 @@ module.exports.getMyApplication = async (req, res, next) => {
     };
 
     // Get File URL
-    const imageFileName = await getFileName('images', applicantIdx);
-    const portfolioFileName = await getFileName('portfolios', applicantIdx);
-
+    const imageFileName = await getFileName('user_image', applicantIdx);
+    const portfolioFileName = await getFileName('user_portfolio', applicantIdx);
     if (imageFileName) {
-      const imageKeyPath = getKeyPath(userInfoRet.userEmail, 'images', imageFileName);
+      const imageKeyPath = getKeyPath(userInfoRet.userEmail, 'user_image', imageFileName);
       const imageUrl = getFileUrl(imageKeyPath);
       result.applicantImageUrl = imageUrl;
     }
     if (portfolioFileName) {
-      const portfolioKeyPath = getKeyPath(userInfoRet.userEmail, 'portfolios', portfolioFileName);
+      const portfolioKeyPath = getKeyPath(userInfoRet.userEmail, 'user_portfolio', portfolioFileName);
       const portfolioUrl = getFileUrl(portfolioKeyPath);
       result.applicantPortfolioUrl = portfolioUrl;
     }
@@ -149,13 +147,13 @@ module.exports.getMyApplication = async (req, res, next) => {
 const remover = async (applicantIdx, userEmail) => {
   const t = await models.sequelize.transaction();
   // 파일 있는지 확인
-  const imageFileName = await getFileName('images', applicantIdx);
-  const portfolioFileName = await getFileName('portfolios', applicantIdx);
+  const imageFileName = await getFileName('user_image', applicantIdx);
+  const portfolioFileName = await getFileName('user_portfolio', applicantIdx);
   if (imageFileName) {
-    await removeFile(applicantIdx, userEmail, 'images');
+    await removeFile(applicantIdx, userEmail, 'user_image');
   }
   if (portfolioFileName) {
-    await removeFile(applicantIdx, userEmail, 'portfolios');
+    await removeFile(applicantIdx, userEmail, 'user_portfolio');
   }
   await models.applicantStatusTb.destroy({ where: { applicantIdx }, transaction: t });
   await models.userInfoTb.destroy({ where: { userEmail }, transaction: t });

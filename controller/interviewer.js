@@ -19,15 +19,14 @@ const verifyRecaptcha = (recaptchaToken) => {
 };
 
 module.exports.interviewerSignUp = async (req, res, next) => {
-  // 트랜젝션 없어서 삭제함
-  // const t = await models.sequelize.transaction();
   try {
-    if (!req.body.userEmail || !req.body.userPassword) {
+    const { userEmail, userPassword, userName, userPosition, recaptchaToken } = req.body;
+
+    if (!userEmail || !userPassword) {
       const err = new Error('There is an empty field');
       err.status = 400;
       throw err;
     }
-    const { userEmail, userPassword, recaptchaToken } = req.body;
 
     // Verification reCAPTCHA
     const verified = await verifyRecaptcha(recaptchaToken);
@@ -41,9 +40,8 @@ module.exports.interviewerSignUp = async (req, res, next) => {
     // invitationCode Validation
     const { season, invitationCode } = await models.recruitmentInfo.findOne()
       .sort('-createdAt')
-      .select('season')
+      .select('season invitationCode')
       .exec();
-
     if (invitationCode !== req.body.invitationCode) {
       const err = new Error('invitation code is not matching');
       err.status = 400;
@@ -63,23 +61,21 @@ module.exports.interviewerSignUp = async (req, res, next) => {
       userType: 'interviewer',
       userSeason: season,
       userEmail,
+      userName,
+      userPosition,
     };
     const { userIdx } = await models.userInfoTb.create(data);
-    // const { userIdx } = await models.userInfoTb.create(data, { transaction: t });
-    // const { interviewerIdx } = await models.interviewerTb.create({ userIdx }, { transaction: t });
-    // await t.commit();
     const token = await auth.createToken(userIdx, userEmail, 'interviewer');
     const resData = {
       token,
       userIdx,
     };
-    console.log('create interviewer in server successfully \n', token, userIdx);
+
     res.r(resData);
   } catch (err) {
     if (err.name === 'SequelizeValidationError') {
       err.status = 400;
     }
-    // await t.rollback();
     next(err);
   }
 };
