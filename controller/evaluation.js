@@ -14,7 +14,7 @@ module.exports.getApplications = async (req, res, next) => {
           include: [
             {
               model: models.applicantStatusTb,
-              attributes: ['isSubmit'],
+              attributes: ['isSubmit', 'isApplicationPass'],
               where: { isSubmit: true },
             }],
         }],
@@ -31,9 +31,9 @@ module.exports.getApplications = async (req, res, next) => {
         applicantIdx: val.applicantInfoTb.applicantIdx,
         userName: val.userName,
         userPosition: val.userPosition,
+        isApplicationPass: val.applicantInfoTb.applicantStatusTb.isApplicationPass,
       };
     });
-
     const indexes = submitted.map(x => x.applicantInfoTb.applicantIdx);
     const applicantsEvaluations = await models.applicantEvaluation
       .find({ applicantIdx: { $in: indexes } })
@@ -60,7 +60,14 @@ module.exports.getApplications = async (req, res, next) => {
 // admin 전용 (합격자 체크해서 보내기)
 module.exports.passApplications = async (req, res, next) => {
   try {
-    console.log('haha');
+    const applicants = req.body;
+    // 더 좋은 방식 있는지 확인
+    for (const applicant of applicants) {
+      models.applicantStatusTb.update({ isApplicationPass: applicant.isApplicationPass },
+        { where: { applicantIdx: applicant.applicantIdx } },
+      );
+    }
+    res.sendStatus(200);
   } catch (e) {
     next(e);
   }
