@@ -22,7 +22,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Load modles
+// Load models
 require('./models');
 
 // initializing passport with passport-jwt strategy
