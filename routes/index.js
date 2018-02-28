@@ -27,7 +27,7 @@ const {
 } = require('../controller/interviewer');
 
 const {
-  getApplications, getEvalData, postComment, deleteComment, setPoint,
+  getApplications, getEvalData, postComment, deleteComment, setPoint, passApplications,
 } = require('../controller/evaluation');
 
 
@@ -77,7 +77,7 @@ module.exports = (router) => {
   // 평가 정보 가져오기, 평가하기 (면접관)
   router.route('/evaluation/application')
     .get(auth, getApplications) // 제출 된 application 전체 가져오기 (표에서 사용)
-    .post(); // 서류 합격자 보내기 (admin 전용)
+    .post(auth, passApplications); // 서류 합격자 보내기 (admin 전용)
   router.route('/evaluation/application/:applicantIdx')
     .get(auth, getEvalData); // 면접관들이 써 놓은 코멘트, 내 점수 가져오기
   router.route('/evaluation/application/:applicantIdx/point')
