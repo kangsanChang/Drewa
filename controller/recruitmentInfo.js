@@ -48,13 +48,13 @@ module.exports.postRecruitInfo = async (req, res, next) => {
 module.exports.getMainInfo = async (req, res, next) => {
   // token 필요없이 main 에서만 주는 정보 필요해서 생성
   try {
-    const {
-      season, mainTitle, mainDescription, mainPosterUrl,
-    } = await models.recruitmentInfo.findOne().where({ isFinished: false }).exec();
-
-    res.r({
-      season, mainTitle, mainDescription, mainPosterUrl,
-    });
+    const results = await models.recruitmentInfo.findOne().where({ isFinished: false }).exec();
+    if (results) {
+      const { season, mainTitle, mainDescription, mainPosterUrl } = results;
+      res.r({ season, mainTitle, mainDescription, mainPosterUrl });
+    }else{
+      res.sendStatus(204);
+    }
   } catch (e) {
     next(e);
   }
@@ -105,6 +105,12 @@ module.exports.seasonEnd = async (req, res, next) => {
   try {
     const { params } = req;
     const { season } = params;
+    // 해당 시즌 지원자정보 모두 삭제해야 함
+    await models.applicantEvaluation.remove({});
+    await models.applicationDoc.remove({});
+    await models.applicantStatusTb.destroy({ where: {} });
+    await models.applicantInfoTb.destroy({ where: {} });
+    await models.userInfoTb.destroy({ where: {} });
     await models.recruitmentInfo.findOneAndUpdate({ season }, { isFinished: true });
     res.sendStatus(200);
   } catch (err) {
