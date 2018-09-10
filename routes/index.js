@@ -1,7 +1,7 @@
 const auth = require('../controller/jwtAuth')().authenticate();
 
 const {
-  applicantSignUp, getApplicantStatus,
+  applicantSignUp, getApplicantStatus, getApplicantsTimes,
 } = require('../controller/applicant');
 
 const {
@@ -9,7 +9,7 @@ const {
 } = require('../controller/applications');
 
 const {
-  onlyApplicant, onlyInterviewer, checkSubmit, checkTime, login,
+  onlyApplicant, onlyInterviewer, onlyAdmin, checkSubmit, checkTime, login,
 } = require('../controller/authController');
 
 const {
@@ -29,7 +29,6 @@ const {
 const {
   getApplications, getEvalData, postComment, deleteComment, setPoint, passApplications,
 } = require('../controller/evaluation');
-
 
 // /api/ 하위로 들어옴
 

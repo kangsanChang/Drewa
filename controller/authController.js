@@ -19,10 +19,9 @@ module.exports.createToken = createToken;
 
 module.exports.onlyApplicant = async (req, res, next) => {
   try {
-    let err = null;
     if (req.user.userType !== 'applicant' ||
       req.user.applicantIdx !== Number(req.params.applicantIdx)) {
-      err = new Error('Permission denied');
+      const err = new Error('Permission denied');
       err.status = 403;
       throw err;
     }
@@ -35,6 +34,19 @@ module.exports.onlyApplicant = async (req, res, next) => {
 module.exports.onlyInterviewer = async (req, res, next) => {
   try {
     if (req.user.userType !== 'interviewer') {
+      const err = new Error('Permission denied');
+      err.status = 403;
+      throw err;
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports.onlyAdmin = async (req, res, next) => {
+  try {
+    if (req.user.userType !== 'admin') {
       const err = new Error('Permission denied');
       err.status = 403;
       throw err;
